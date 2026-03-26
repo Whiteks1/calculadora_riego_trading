@@ -1,6 +1,7 @@
 const form = document.getElementById("riskForm");
 const fillExampleButton = document.getElementById("fillExample");
 const saveScenarioButton = document.getElementById("saveScenario");
+const exportScenariosButton = document.getElementById("exportScenarios");
 const clearScenariosButton = document.getElementById("clearScenarios");
 const formMessage = document.getElementById("formMessage");
 const scenarioTableBody = document.getElementById("scenarioTableBody");
@@ -143,6 +144,28 @@ function persistScenarios() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
 }
 
+function escapeCsvValue(value) {
+  const stringValue = String(value);
+
+  if (stringValue.includes(",") || stringValue.includes("\"") || stringValue.includes("\n")) {
+    return `"${stringValue.replaceAll("\"", "\"\"")}"`;
+  }
+
+  return stringValue;
+}
+
+function downloadCsvFile(filename, content) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
 function loadScenarios() {
   try {
     const rawValue = window.localStorage.getItem(STORAGE_KEY);
@@ -214,6 +237,7 @@ function renderScenarioTable() {
     `;
     scenarioCountBadge.textContent = "0 escenarios";
     scenarioCountBadge.className = "trade-badge neutral";
+    exportScenariosButton.disabled = true;
     return;
   }
 
@@ -241,6 +265,7 @@ function renderScenarioTable() {
 
   scenarioCountBadge.textContent = `${scenarios.length} escenario${scenarios.length === 1 ? "" : "s"}`;
   scenarioCountBadge.className = "trade-badge neutral";
+  exportScenariosButton.disabled = false;
 }
 
 function saveScenario() {
@@ -254,6 +279,58 @@ function saveScenario() {
   persistScenarios();
   formMessage.textContent = "Escenario anadido a la tabla comparativa.";
   renderScenarioTable();
+}
+
+function exportScenariosToCsv() {
+  if (scenarios.length === 0) {
+    formMessage.textContent = "No hay escenarios para exportar.";
+    return;
+  }
+
+  const headers = [
+    "numero",
+    "tipo",
+    "capital",
+    "riesgo_percent",
+    "entrada",
+    "stop_loss",
+    "objetivo",
+    "riesgo_dinero",
+    "distancia_stop",
+    "distancia_objetivo",
+    "tamano_posicion",
+    "perdida_potencial",
+    "beneficio_potencial",
+    "ratio_r",
+    "valor_nocional",
+    "objetivo_coherente",
+  ];
+
+  const rows = scenarios.map((scenario, index) => [
+    index + 1,
+    scenario.tradeType,
+    scenario.capital,
+    scenario.riskPercent,
+    scenario.entryPrice,
+    scenario.stopLoss,
+    scenario.exitPrice,
+    scenario.riskAmount,
+    scenario.stopDistance,
+    scenario.targetDistance,
+    scenario.positionSize,
+    scenario.potentialLoss,
+    scenario.potentialProfit,
+    scenario.rrRatio,
+    scenario.notionalValue,
+    scenario.expectedTargetDirection ? "si" : "no",
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+
+  downloadCsvFile("escenarios-trading.csv", csvContent);
+  formMessage.textContent = "CSV exportado con tus escenarios guardados.";
 }
 
 function resetResults() {
@@ -340,6 +417,10 @@ clearScenariosButton.addEventListener("click", () => {
   window.localStorage.removeItem(STORAGE_KEY);
   formMessage.textContent = "La tabla de escenarios se ha vaciado.";
   renderScenarioTable();
+});
+
+exportScenariosButton.addEventListener("click", () => {
+  exportScenariosToCsv();
 });
 
 loadScenarios();

@@ -9,6 +9,7 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 - Beneficio potencial y ratio riesgo/beneficio.
 - Tabla para comparar escenarios guardados.
 - Persistencia de escenarios con `localStorage`.
+- Exportacion CSV de escenarios guardados.
 - Workflow de GitHub Pages para desplegar la web automatica desde `main`.
 - Version en C++ consola del motor de calculo.
 - Interfaz preparada para crecer sin rehacer la base.
@@ -29,6 +30,7 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 3. Pulsa `Calcular riesgo`.
 4. Si quieres compararla con otras, pulsa `Anadir escenario`.
 5. Los escenarios guardados se restauran al recargar la pagina.
+6. Puedes pulsar `Exportar CSV` para descargar la tabla comparativa.
 
 ## GitHub Pages
 
@@ -41,6 +43,8 @@ URL esperada del sitio:
 Si es la primera vez que activas Pages en el repositorio, revisa en GitHub que la fuente de Pages use `GitHub Actions`.
 
 ## Version C++ consola
+
+La version de consola permite calcular varias operaciones seguidas y al final muestra un resumen de escenarios.
 
 ### Compilar con g++
 
@@ -64,6 +68,6 @@ cmake --build cpp/build --config Release
 ## Siguientes pasos recomendados
 
 1. Compartir la logica entre la web y C++ con pruebas.
-2. Anadir exportacion CSV.
+2. Anadir historico con fecha, notas y filtro por estrategia.
 3. Guardar historico de operaciones con fecha y notas.
 4. Evolucionar el motor C++ hacia backtesting y simulacion.
