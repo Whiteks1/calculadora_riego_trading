@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Riesgo Trading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="hero">
+      <p class="eyebrow">Proyecto base para trading</p>
+      <h1>Calculadora web de riesgo</h1>
+      <p class="hero-copy">
+        Calcula cuánto arriesgas por operación, el tamaño estimado de la posición y la relación
+        riesgo/beneficio antes de entrar al mercado.
+      </p>
+
+      <div class="hero-grid">
+        <article class="info-card">
+          <h2>Incluye ahora</h2>
+          <ul>
+            <li>Validación clara de inputs</li>
+            <li>Cálculo de riesgo monetario</li>
+            <li>Tamaño de posición estimado</li>
+            <li>Escenario de beneficio y ratio R</li>
+          </ul>
+        </article>
+
+        <article class="info-card accent">
+          <h2>Escalable después</h2>
+          <ul>
+            <li>Comparar escenarios</li>
+            <li>Guardar operaciones</li>
+            <li>Exportar resultados</li>
+            <li>Migrar el motor a C++</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="calculator-panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Versión 1</p>
+          <h2>Datos de la operación</h2>
+        </div>
+        <button type="button" class="ghost-button" id="fillExample">Cargar ejemplo</button>
+      </div>
+
+      <form id="riskForm" novalidate>
+        <div class="form-grid">
+          <label class="field">
+            <span>Capital disponible</span>
+            <input id="capital" name="capital" type="number" min="0" step="0.01" placeholder="10000">
+          </label>
+
+          <label class="field">
+            <span>Riesgo por operación (%)</span>
+            <input id="riskPercent" name="riskPercent" type="number" min="0" max="100" step="0.01" placeholder="1">
+          </label>
+
+          <label class="field">
+            <span>Precio de entrada</span>
+            <input id="entryPrice" name="entryPrice" type="number" min="0" step="0.0001" placeholder="1.2050">
+          </label>
+
+          <label class="field">
+            <span>Stop loss</span>
+            <input id="stopLoss" name="stopLoss" type="number" min="0" step="0.0001" placeholder="1.1980">
+          </label>
+
+          <label class="field field-wide">
+            <span>Precio objetivo / salida</span>
+            <input id="exitPrice" name="exitPrice" type="number" min="0" step="0.0001" placeholder="1.2190">
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="primary-button">Calcular riesgo</button>
+          <button type="button" class="secondary-button" id="saveScenario">Añadir escenario</button>
+          <button type="reset" class="secondary-button">Limpiar</button>
+        </div>
+
+        <p id="formMessage" class="form-message" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="results-panel" aria-live="polite">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Resultado</p>
+          <h2>Lectura rápida de la operación</h2>
+        </div>
+        <span class="trade-badge neutral" id="tradeTypeBadge">Esperando datos</span>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card">
+          <p>Riesgo en dinero</p>
+          <strong id="riskAmount">--</strong>
+          <span>Capital que aceptarías perder</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Tamaño estimado</p>
+          <strong id="positionSize">--</strong>
+          <span>Unidades aproximadas según tu stop</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Pérdida potencial</p>
+          <strong id="potentialLoss">--</strong>
+          <span>Si el precio alcanza el stop loss</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Beneficio potencial</p>
+          <strong id="potentialProfit">--</strong>
+          <span>Si el precio alcanza el objetivo</span>
+        </article>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-main">
+          <p class="summary-label">Relación riesgo / beneficio</p>
+          <strong id="rrRatio">--</strong>
+        </div>
+        <div class="summary-main">
+          <p class="summary-label">Distancia al stop</p>
+          <strong id="stopDistance">--</strong>
+        </div>
+        <div class="summary-main">
+          <p class="summary-label">Valor nocional aprox.</p>
+          <strong id="notionalValue">--</strong>
+        </div>
+      </div>
+
+      <article class="insight-card">
+        <h3>Interpretación</h3>
+        <p id="insightText">
+          Completa el formulario para obtener una lectura de la operación y validar si el escenario tiene sentido.
+        </p>
+      </article>
+    </section>
+
+    <section class="results-panel scenarios-panel" aria-live="polite">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Comparador</p>
+          <h2>Escenarios guardados</h2>
+        </div>
+        <span class="trade-badge neutral" id="scenarioCountBadge">0 escenarios</span>
+      </div>
+
+      <div class="table-shell">
+        <table class="scenario-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Tipo</th>
+              <th>Capital</th>
+              <th>Riesgo</th>
+              <th>Entrada</th>
+              <th>Stop</th>
+              <th>Objetivo</th>
+              <th>Posición</th>
+              <th>Ratio R</th>
+              <th>Beneficio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="scenarioTableBody">
+            <tr class="empty-row">
+              <td colspan="11">Todavía no has guardado escenarios. Calcula una operación y pulsa "Añadir escenario".</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
