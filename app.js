@@ -1,6 +1,7 @@
 const form = document.getElementById("riskForm");
 const fillExampleButton = document.getElementById("fillExample");
 const saveScenarioButton = document.getElementById("saveScenario");
+const clearScenariosButton = document.getElementById("clearScenarios");
 const formMessage = document.getElementById("formMessage");
 const scenarioTableBody = document.getElementById("scenarioTableBody");
 const scenarioCountBadge = document.getElementById("scenarioCountBadge");
@@ -17,6 +18,7 @@ const outputs = {
   tradeTypeBadge: document.getElementById("tradeTypeBadge"),
 };
 
+const STORAGE_KEY = "trading-risk-scenarios";
 const scenarios = [];
 let lastCalculation = null;
 
@@ -117,6 +119,61 @@ function calculateRisk(values) {
   };
 }
 
+function createScenarioRecord(values, metrics) {
+  return {
+    capital: values.capital,
+    riskPercent: values.riskPercent,
+    entryPrice: values.entryPrice,
+    stopLoss: values.stopLoss,
+    exitPrice: values.exitPrice,
+    tradeType: metrics.tradeType,
+    riskAmount: metrics.riskAmount,
+    stopDistance: metrics.stopDistance,
+    targetDistance: metrics.targetDistance,
+    positionSize: metrics.positionSize,
+    potentialLoss: metrics.potentialLoss,
+    potentialProfit: metrics.potentialProfit,
+    rrRatio: metrics.rrRatio,
+    notionalValue: metrics.notionalValue,
+    expectedTargetDirection: metrics.expectedTargetDirection,
+  };
+}
+
+function persistScenarios() {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
+}
+
+function loadScenarios() {
+  try {
+    const rawValue = window.localStorage.getItem(STORAGE_KEY);
+
+    if (!rawValue) {
+      return;
+    }
+
+    const parsedScenarios = JSON.parse(rawValue);
+
+    if (!Array.isArray(parsedScenarios)) {
+      return;
+    }
+
+    parsedScenarios.forEach((scenario) => {
+      if (
+        Number.isFinite(scenario.capital) &&
+        Number.isFinite(scenario.riskPercent) &&
+        Number.isFinite(scenario.entryPrice) &&
+        Number.isFinite(scenario.stopLoss) &&
+        Number.isFinite(scenario.exitPrice) &&
+        typeof scenario.tradeType === "string"
+      ) {
+        scenarios.push(scenario);
+      }
+    });
+  } catch (error) {
+    console.error("No se pudieron cargar los escenarios guardados.", error);
+  }
+}
+
 function updateBadge(tradeType) {
   outputs.tradeTypeBadge.textContent = tradeType;
   outputs.tradeTypeBadge.className = "trade-badge";
@@ -192,11 +249,9 @@ function saveScenario() {
     return;
   }
 
-  scenarios.push({
-    ...lastCalculation.values,
-    ...lastCalculation.metrics,
-  });
+  scenarios.push(createScenarioRecord(lastCalculation.values, lastCalculation.metrics));
 
+  persistScenarios();
   formMessage.textContent = "Escenario anadido a la tabla comparativa.";
   renderScenarioTable();
 }
@@ -275,9 +330,18 @@ scenarioTableBody.addEventListener("click", (event) => {
 
   if (Number.isInteger(index)) {
     scenarios.splice(index, 1);
+    persistScenarios();
     renderScenarioTable();
   }
 });
 
+clearScenariosButton.addEventListener("click", () => {
+  scenarios.length = 0;
+  window.localStorage.removeItem(STORAGE_KEY);
+  formMessage.textContent = "La tabla de escenarios se ha vaciado.";
+  renderScenarioTable();
+});
+
+loadScenarios();
 renderScenarioTable();
 resetResults();

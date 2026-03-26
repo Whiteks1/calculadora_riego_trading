@@ -235,6 +235,12 @@ button:hover {
   overflow: hidden;
 }
 
+.scenario-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .trade-badge {
   display: inline-flex;
   align-items: center;
@@ -399,7 +405,8 @@ button:hover {
 
   .panel-head,
   .results-head,
-  .actions {
+  .actions,
+  .scenario-toolbar {
     flex-direction: column;
     align-items: stretch;
   }

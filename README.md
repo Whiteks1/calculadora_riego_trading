@@ -8,6 +8,9 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 - Calculo del dinero arriesgado y del tamano estimado de la posicion.
 - Beneficio potencial y ratio riesgo/beneficio.
 - Tabla para comparar escenarios guardados.
+- Persistencia de escenarios con `localStorage`.
+- Workflow de GitHub Pages para desplegar la web automatica desde `main`.
+- Version en C++ consola del motor de calculo.
 - Interfaz preparada para crecer sin rehacer la base.
 
 ## Archivos
@@ -15,6 +18,9 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 - `index.html`: estructura de la aplicacion.
 - `styles.css`: diseno responsive.
 - `app.js`: validacion y calculos.
+- `.github/workflows/deploy-pages.yml`: despliegue automatico a GitHub Pages.
+- `cpp/main.cpp`: version consola del motor.
+- `cpp/CMakeLists.txt`: configuracion minima para compilar con CMake.
 
 ## Como abrirlo
 
@@ -22,10 +28,42 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 2. Completa los datos de la operacion.
 3. Pulsa `Calcular riesgo`.
 4. Si quieres compararla con otras, pulsa `Anadir escenario`.
+5. Los escenarios guardados se restauran al recargar la pagina.
+
+## GitHub Pages
+
+La web queda preparada para publicarse con GitHub Pages usando GitHub Actions.
+
+URL esperada del sitio:
+
+- `https://whiteks1.github.io/calculadora_riego_trading/`
+
+Si es la primera vez que activas Pages en el repositorio, revisa en GitHub que la fuente de Pages use `GitHub Actions`.
+
+## Version C++ consola
+
+### Compilar con g++
+
+```bash
+g++ -std=c++17 -O2 -o trading_risk_calculator cpp/main.cpp
+```
+
+### Ejecutar
+
+```bash
+./trading_risk_calculator
+```
+
+### Compilar con CMake
+
+```bash
+cmake -S cpp -B cpp/build
+cmake --build cpp/build --config Release
+```
 
 ## Siguientes pasos recomendados
 
-1. Guardar operaciones en `localStorage`.
-2. Anadir una tabla con varios escenarios.
-3. Crear el mismo motor en C++ consola.
-4. Migrar la logica avanzada a un modulo mas serio para simulacion o backtesting.
+1. Compartir la logica entre la web y C++ con pruebas.
+2. Anadir exportacion CSV.
+3. Guardar historico de operaciones con fecha y notas.
+4. Evolucionar el motor C++ hacia backtesting y simulacion.
