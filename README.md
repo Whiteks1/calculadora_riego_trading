@@ -2,11 +2,36 @@
 
 Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y logica aplicada a trading.
 
-El repositorio tambien empieza a actuar como un **pre-trade risk workbench** reusable dentro del ecosistema QuantLab:
+Hoy este repositorio debe leerse principalmente como un **pre-trade risk workbench** reusable y acotado:
 - el navegador sigue siendo una superficie de operador
 - el calculo vive en un core compartido
-- los trade plans ya pueden exportarse de forma determinista en JSON y CSV
-- la consola C++ puede producir el mismo shape basico para validaciones cruzadas
+- los trade plans se exportan de forma determinista en JSON y CSV
+- la CLI headless permite un path reproducible sin depender del DOM
+- la version C++ sirve como runtime alternativo para paridad y validacion cruzada
+
+## Rol del repositorio
+
+Este repo:
+- planifica operaciones
+- genera artifacts deterministas
+- exporta un handoff acotado hacia QuantLab
+
+Este repo no es dueno de:
+- `ExecutionPolicy`
+- `ExecutionIntent`
+- approval o submit
+- broker adapters
+- paper o live execution
+
+Regla base:
+- la calculadora planifica
+- QuantLab valida
+- QuantLab decide
+- QuantLab ejecuta
+
+Roadmap corto del repo:
+
+- `docs/pretrade-workbench-roadmap.md`
 
 ## Incluye
 
@@ -36,9 +61,11 @@ El repositorio tambien empieza a actuar como un **pre-trade risk workbench** reu
 - `app.js`: validacion y calculos.
 - `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
 - `package.json`: entrypoint CLI y scripts de test ligeros.
+- `docs/pretrade-workbench-roadmap.md`: posicionamiento, limites y roadmap corto del repo.
 - `docs/quantlab-handoff-contract.md`: boundary y contrato de handoff hacia QuantLab.
 - `examples/quantlab_handoff_request.json`: ejemplo de request para el path headless.
 - `.github/workflows/deploy-pages.yml`: despliegue automatico a GitHub Pages.
+- `.github/workflows/contract-parity-ci.yml`: CI de contrato y paridad.
 - `cpp/main.cpp`: version consola del motor.
 - `cpp/risk_engine.cpp`: motor compartido de calculo en C++.
 - `cpp/risk_case_runner.cpp`: runner C++ para verificar paridad contra los fixtures compartidos.
@@ -134,9 +161,9 @@ Ese workflow valida:
 
 ## Siguientes pasos recomendados
 
-1. Documentar el contrato de handoff para QuantLab.
-2. Incorporar shorts reales y mas reglas al backtester.
-3. Guardar y exportar resultados del backtester.
+1. Mantener estable el boundary y el contract del handoff.
+2. Hacer intake downstream en QuantLab cuando haga falta.
+3. Dejar cualquier mejora extra de UX o backtester fuera del camino critico.
 
 ## CLI headless
 
@@ -168,13 +195,6 @@ La integración prevista con QuantLab es deliberadamente acotada:
 - QuantLab valida
 - QuantLab decide
 - QuantLab ejecuta
-
-Eso significa que esta herramienta no es dueña de:
-
-- `ExecutionPolicy`
-- `ExecutionIntent`
-- approval o submit
-- broker adapters
 
 El contrato documentado está en:
 
