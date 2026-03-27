@@ -1,0 +1,51 @@
+{
+  "contractType": "calculadora_riesgo.trade_plan",
+  "contractVersion": "1.0",
+  "planner": "contract-fixture",
+  "planId": "quantlab-example-001",
+  "generatedAt": "2026-03-27T12:00:00.000Z",
+  "input": {
+    "capital": 1000,
+    "riskPercent": 1,
+    "entryPrice": 2000,
+    "stopLoss": 1950,
+    "exitPrice": 2100,
+    "feePercent": 0.1,
+    "slippagePercent": 0.05,
+    "strategyName": "ETH breakout",
+    "tradeNotes": "Example bounded handoff request for QuantLab."
+  },
+  "context": {
+    "symbol": "ETH-USD",
+    "venue": "hyperliquid",
+    "side": "buy",
+    "accountId": "acct_demo_001",
+    "strategyId": "breakout_v1"
+  },
+  "metrics": {
+    "tradeType": "LONG",
+    "riskAmount": 10,
+    "stopDistance": 50,
+    "targetDistance": 100,
+    "positionSize": 0.2,
+    "potentialLoss": 10,
+    "potentialProfit": 20,
+    "rrRatio": 2,
+    "notionalValue": 400,
+    "expectedTargetDirection": true
+  },
+  "costs": {
+    "feePercent": 0.1,
+    "slippagePercent": 0.05,
+    "estimatedEntryFees": 0.4,
+    "estimatedExitFees": 0.4,
+    "estimatedEntrySlippage": 0.2,
+    "estimatedExitSlippage": 0.2,
+    "estimatedRoundTripCosts": 1.2
+  },
+  "outcomes": {
+    "netPotentialLoss": 11.2,
+    "netPotentialProfit": 18.8,
+    "netRrRatio": 1.6785714285714288
+  }
+}

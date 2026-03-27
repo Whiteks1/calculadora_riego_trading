@@ -10,6 +10,7 @@
     "test:js": "node tests/run_js_tests.js",
     "test:cross": "node tests/run_cross_tests.js",
     "test:trade-plan-cross": "node tests/run_trade_plan_cross_tests.js",
-    "test:cli": "node tests/run_cli_tests.js"
+    "test:cli": "node tests/run_cli_tests.js",
+    "test:contract-fixtures": "node tests/run_contract_fixture_tests.js"
   }
 }

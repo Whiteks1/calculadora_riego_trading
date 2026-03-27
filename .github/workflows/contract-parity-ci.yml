@@ -1,0 +1,47 @@
+name: Contract And Parity CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  contract-parity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Show toolchain versions
+        run: |
+          node --version
+          npm --version
+          g++ --version
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check risk-core.js
+          node --check cli/trade-plan.js
+
+      - name: Run JS and CLI tests
+        run: |
+          npm run test:js
+          npm run test:cli
+          npm run test:contract-fixtures
+
+      - name: Build C++ parity runners
+        run: |
+          g++ -std=c++17 -O2 -o risk_case_runner.exe cpp/risk_case_runner.cpp cpp/risk_engine.cpp
+          g++ -std=c++17 -O2 -o trade_plan_runner.exe cpp/trade_plan_runner.cpp cpp/risk_engine.cpp
+
+      - name: Run cross-runtime parity tests
+        run: |
+          npm run test:cross
+          npm run test:trade-plan-cross
