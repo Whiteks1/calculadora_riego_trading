@@ -133,7 +133,7 @@ The site is ready to be published with GitHub Pages through GitHub Actions.
 
 Expected public URL:
 
-- `https://whiteks1.github.io/calculadora_riego_trading/`
+- `https://whiteks1.github.io/calculadora_riesgo_trading/`
 
 If this is the first time you enable Pages for the repository, make sure the Pages source is set to `GitHub Actions`.
 

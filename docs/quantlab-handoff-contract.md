@@ -6,7 +6,7 @@ Version: 1.0
 ## Purpose
 
 This document defines the bounded handoff surface between
-`calculadora_riego_trading` and QuantLab.
+`calculadora_riesgo_trading` and QuantLab.
 
 The calculator may help an operator plan a trade.
 
