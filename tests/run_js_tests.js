@@ -32,6 +32,10 @@ function run() {
       entryPrice: Number(testCase.entryPrice),
       stopLoss: Number(testCase.stopLoss),
       exitPrice: Number(testCase.exitPrice),
+      feePercent: 0.1,
+      slippagePercent: 0.05,
+      strategyName: "Parity test",
+      tradeNotes: "fixture",
     };
 
     const validationError = RiskCore.validateTradeValues(values);
@@ -54,9 +58,42 @@ function run() {
     assertClose(metrics.potentialProfit, Number(testCase.potentialProfit), `${testCase.name} potentialProfit`);
     assertClose(metrics.rrRatio, Number(testCase.rrRatio), `${testCase.name} rrRatio`);
     assertClose(metrics.notionalValue, Number(testCase.notionalValue), `${testCase.name} notionalValue`);
+
+    const plan = RiskCore.createTradePlan(values, {
+      generatedAt: "2026-03-27T12:00:00.000Z",
+      planId: `${testCase.name}-plan`,
+      planner: "js-test-runner",
+    });
+
+    if (plan.contractType !== RiskCore.CONTRACT_TYPE) {
+      throw new Error(`${testCase.name}: contractType inesperado -> ${plan.contractType}`);
+    }
+
+    if (plan.planId !== `${testCase.name}-plan`) {
+      throw new Error(`${testCase.name}: planId inesperado -> ${plan.planId}`);
+    }
+
+    if (plan.costs.estimatedRoundTripCosts <= 0) {
+      throw new Error(`${testCase.name}: costes estimados no válidos.`);
+    }
+
+    if (plan.outcomes.netPotentialLoss <= metrics.potentialLoss) {
+      throw new Error(`${testCase.name}: la pérdida neta debería incorporar costes.`);
+    }
+
+    const serializedJson = RiskCore.serializeTradePlanJson(plan);
+    const serializedCsv = RiskCore.serializeTradePlanCsv(plan);
+
+    if (!serializedJson.includes("\"contractType\":")) {
+      throw new Error(`${testCase.name}: JSON sin contractType.`);
+    }
+
+    if (!serializedCsv.startsWith(RiskCore.tradePlanCsvHeaders().join(","))) {
+      throw new Error(`${testCase.name}: CSV sin cabecera canónica.`);
+    }
   });
 
-  console.log(`JS tests ok: ${cases.length} casos verificados.`);
+  console.log(`JS tests ok: ${cases.length} casos verificados con trade plan.`);
 }
 
 run();

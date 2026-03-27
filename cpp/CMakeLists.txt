@@ -13,3 +13,6 @@ target_link_libraries(trading_risk_calculator PRIVATE risk_engine)
 
 add_executable(risk_case_runner risk_case_runner.cpp)
 target_link_libraries(risk_case_runner PRIVATE risk_engine)
+
+add_executable(trade_plan_runner trade_plan_runner.cpp)
+target_link_libraries(trade_plan_runner PRIVATE risk_engine)
