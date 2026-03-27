@@ -11,3 +11,6 @@ risk_engine*.exe
 .vscode/
 temp-input*.txt
 escenarios_cpp.csv
+node_modules/
+test-results/
+playwright-report/

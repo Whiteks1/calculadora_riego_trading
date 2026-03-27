@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Show toolchain versions
         run: |
@@ -25,16 +26,33 @@ jobs:
           npm --version
           g++ --version
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Validate JavaScript syntax
         run: |
           node --check risk-core.js
+          node --check app.js
           node --check cli/trade-plan.js
+          node --check web/shared.js
+          node --check web/risk-ui.js
+          node --check web/backtest-ui.js
+          node --check scripts/serve-static.js
+          node --check scripts/clean-local-artifacts.js
+          node --check playwright.config.js
+          node --check tests/ui/risk-calculator.spec.js
 
       - name: Run JS and CLI tests
         run: |
           npm run test:js
           npm run test:cli
           npm run test:contract-fixtures
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run UI tests
+        run: npm run test:ui
 
       - name: Build C++ parity runners
         run: |

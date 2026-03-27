@@ -58,9 +58,15 @@ Roadmap corto del repo:
 - `index.html`: estructura de la aplicacion.
 - `styles.css`: diseno responsive.
 - `risk-core.js`: core reutilizable de riesgo, costes y trade-plan exports.
-- `app.js`: validacion y calculos.
+- `app.js`: bootstrap ligero de la app web.
+- `web/shared.js`: formato, lectura de formularios, persistencia y descargas.
+- `web/risk-ui.js`: calculadora, escenarios, historico y exportaciones web.
+- `web/backtest-ui.js`: mini backtester visual y render de tablas/graficos.
 - `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
 - `package.json`: entrypoint CLI y scripts de test ligeros.
+- `playwright.config.js`: configuracion de pruebas UI/browser.
+- `scripts/serve-static.js`: servidor estatico minimo para pruebas de navegador.
+- `scripts/clean-local-artifacts.js`: limpieza local opcional de artefactos ignorados.
 - `docs/pretrade-workbench-roadmap.md`: posicionamiento, limites y roadmap corto del repo.
 - `docs/quantlab-handoff-contract.md`: boundary y contrato de handoff hacia QuantLab.
 - `examples/quantlab_handoff_request.json`: ejemplo de request para el path headless.
@@ -136,9 +142,11 @@ cmake --build cpp/build --config Release
 ### JS
 
 ```bash
+npm ci
 node tests/run_js_tests.js
 node tests/run_cli_tests.js
 node tests/run_contract_fixture_tests.js
+npm run test:ui
 ```
 
 ### C++
@@ -160,6 +168,7 @@ Ese workflow valida:
 
 - sintaxis del core y de la CLI
 - tests JS y headless CLI
+- pruebas UI/browser sobre el flujo principal
 - fixture canónica del trade plan y del handoff hacia QuantLab
 - paridad entre JS y C++ para métricas y trade plans
 
@@ -167,7 +176,16 @@ Eso deja como baseline del repo:
 
 - fixtures versionadas en control de versiones
 - paridad automatizada entre runtimes
+- smoke tests reales de navegador para la interfaz principal
 - drift visible antes de integrar nada en QuantLab
+
+## Limpieza local
+
+Si quieres dejar la carpeta limpia de artefactos ignorados que hayas generado en local:
+
+```bash
+npm run clean:artifacts
+```
 
 ## Siguientes pasos recomendados
 
