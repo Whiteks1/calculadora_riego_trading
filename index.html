@@ -79,6 +79,16 @@
           </label>
 
           <label class="field">
+            <span>Fees por lado (%)</span>
+            <input id="feePercent" name="feePercent" type="number" min="0" max="100" step="0.0001" placeholder="0.08">
+          </label>
+
+          <label class="field">
+            <span>Slippage por lado (%)</span>
+            <input id="slippagePercent" name="slippagePercent" type="number" min="0" max="100" step="0.0001" placeholder="0.02">
+          </label>
+
+          <label class="field">
             <span>Estrategia</span>
             <input id="strategyName" name="strategyName" type="text" placeholder="Breakout diario">
           </label>
@@ -92,6 +102,8 @@
         <div class="actions">
           <button type="submit" class="primary-button">Calcular riesgo</button>
           <button type="button" class="secondary-button" id="saveScenario">Guardar escenario</button>
+          <button type="button" class="secondary-button" id="exportPlanJson" disabled>Exportar trade plan JSON</button>
+          <button type="button" class="secondary-button" id="exportPlanCsv" disabled>Exportar trade plan CSV</button>
           <button type="reset" class="secondary-button">Limpiar</button>
         </div>
 
@@ -132,6 +144,18 @@
           <strong id="potentialProfit">--</strong>
           <span>Si el precio alcanza el objetivo</span>
         </article>
+
+        <article class="stat-card">
+          <p>Costes estimados</p>
+          <strong id="estimatedRoundTripCosts">--</strong>
+          <span>Fees y slippage ida y vuelta</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Beneficio neto estimado</p>
+          <strong id="netPotentialProfit">--</strong>
+          <span>Objetivo menos costes estimados</span>
+        </article>
       </div>
 
       <div class="summary-card">
@@ -146,6 +170,10 @@
         <div class="summary-main">
           <p class="summary-label">Valor nocional aprox.</p>
           <strong id="notionalValue">--</strong>
+        </div>
+        <div class="summary-main">
+          <p class="summary-label">Ratio R neto</p>
+          <strong id="netRrRatio">--</strong>
         </div>
       </div>
 

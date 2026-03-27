@@ -1,6 +1,8 @@
 const form = document.getElementById("riskForm");
 const fillExampleButton = document.getElementById("fillExample");
 const saveScenarioButton = document.getElementById("saveScenario");
+const exportPlanJsonButton = document.getElementById("exportPlanJson");
+const exportPlanCsvButton = document.getElementById("exportPlanCsv");
 const exportScenariosButton = document.getElementById("exportScenarios");
 const exportHistoryButton = document.getElementById("exportHistory");
 const clearScenariosButton = document.getElementById("clearScenarios");
@@ -28,9 +30,12 @@ const outputs = {
   positionSize: document.getElementById("positionSize"),
   potentialLoss: document.getElementById("potentialLoss"),
   potentialProfit: document.getElementById("potentialProfit"),
+  estimatedRoundTripCosts: document.getElementById("estimatedRoundTripCosts"),
+  netPotentialProfit: document.getElementById("netPotentialProfit"),
   rrRatio: document.getElementById("rrRatio"),
   stopDistance: document.getElementById("stopDistance"),
   notionalValue: document.getElementById("notionalValue"),
+  netRrRatio: document.getElementById("netRrRatio"),
   insightText: document.getElementById("insightText"),
   tradeTypeBadge: document.getElementById("tradeTypeBadge"),
 };
@@ -62,6 +67,8 @@ const exampleValues = {
   entryPrice: 1.205,
   stopLoss: 1.198,
   exitPrice: 1.219,
+  feePercent: 0.08,
+  slippagePercent: 0.02,
   strategyName: "Breakout diario",
   tradeNotes: "Ruptura con objetivo 2R y contexto favorable en sesión europea.",
 };
@@ -132,6 +139,8 @@ function readFormValues() {
     entryPrice: Number(formData.get("entryPrice")),
     stopLoss: Number(formData.get("stopLoss")),
     exitPrice: Number(formData.get("exitPrice")),
+    feePercent: Number(formData.get("feePercent") || 0),
+    slippagePercent: Number(formData.get("slippagePercent") || 0),
     strategyName: String(formData.get("strategyName") || "").trim(),
     tradeNotes: String(formData.get("tradeNotes") || "").trim(),
   };
@@ -149,27 +158,37 @@ function calculateRisk(values) {
   return riskEngine.calculateRiskMetrics(values);
 }
 
-function createScenarioRecord(values, metrics, timestamp = new Date().toISOString()) {
+function buildTradePlan(values, options = {}) {
+  return riskEngine.createTradePlan(values, options);
+}
+
+function createScenarioRecord(tradePlan, timestamp = new Date().toISOString()) {
   return {
     id: generateId(),
     createdAt: timestamp,
-    strategy: values.strategyName || "Sin estrategia",
-    notes: values.tradeNotes || "",
-    capital: values.capital,
-    riskPercent: values.riskPercent,
-    entryPrice: values.entryPrice,
-    stopLoss: values.stopLoss,
-    exitPrice: values.exitPrice,
-    tradeType: metrics.tradeType,
-    riskAmount: metrics.riskAmount,
-    stopDistance: metrics.stopDistance,
-    targetDistance: metrics.targetDistance,
-    positionSize: metrics.positionSize,
-    potentialLoss: metrics.potentialLoss,
-    potentialProfit: metrics.potentialProfit,
-    rrRatio: metrics.rrRatio,
-    notionalValue: metrics.notionalValue,
-    expectedTargetDirection: metrics.expectedTargetDirection,
+    strategy: tradePlan.input.strategyName || "Sin estrategia",
+    notes: tradePlan.input.tradeNotes || "",
+    capital: tradePlan.input.capital,
+    riskPercent: tradePlan.input.riskPercent,
+    entryPrice: tradePlan.input.entryPrice,
+    stopLoss: tradePlan.input.stopLoss,
+    exitPrice: tradePlan.input.exitPrice,
+    feePercent: tradePlan.input.feePercent,
+    slippagePercent: tradePlan.input.slippagePercent,
+    tradeType: tradePlan.metrics.tradeType,
+    riskAmount: tradePlan.metrics.riskAmount,
+    stopDistance: tradePlan.metrics.stopDistance,
+    targetDistance: tradePlan.metrics.targetDistance,
+    positionSize: tradePlan.metrics.positionSize,
+    potentialLoss: tradePlan.metrics.potentialLoss,
+    potentialProfit: tradePlan.metrics.potentialProfit,
+    rrRatio: tradePlan.metrics.rrRatio,
+    notionalValue: tradePlan.metrics.notionalValue,
+    estimatedRoundTripCosts: tradePlan.costs.estimatedRoundTripCosts,
+    netPotentialLoss: tradePlan.outcomes.netPotentialLoss,
+    netPotentialProfit: tradePlan.outcomes.netPotentialProfit,
+    netRrRatio: tradePlan.outcomes.netRrRatio,
+    expectedTargetDirection: tradePlan.metrics.expectedTargetDirection,
   };
 }
 
@@ -192,6 +211,8 @@ function normalizeStoredRecord(rawRecord, index) {
     entryPrice: Number(rawRecord.entryPrice),
     stopLoss: Number(rawRecord.stopLoss),
     exitPrice: Number(rawRecord.exitPrice),
+    feePercent: Number(rawRecord.feePercent || 0),
+    slippagePercent: Number(rawRecord.slippagePercent || 0),
     strategyName: typeof rawRecord.strategy === "string" ? rawRecord.strategy : "",
     tradeNotes: typeof rawRecord.notes === "string" ? rawRecord.notes : "",
   };
@@ -200,10 +221,11 @@ function normalizeStoredRecord(rawRecord, index) {
     return null;
   }
 
-  const metrics = calculateRisk(normalizedValues);
+  const tradePlan = buildTradePlan(normalizedValues, {
+    generatedAt: rawRecord.createdAt || new Date(Date.now() - index * 60000).toISOString(),
+  });
   const record = createScenarioRecord(
-    normalizedValues,
-    metrics,
+    tradePlan,
     rawRecord.createdAt || new Date(Date.now() - index * 60000).toISOString(),
   );
 
@@ -244,8 +266,8 @@ function escapeCsvValue(value) {
   return stringValue;
 }
 
-function downloadCsvFile(filename, content) {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8;") {
+  const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -262,25 +284,36 @@ function updateBadge(tradeType) {
   outputs.tradeTypeBadge.classList.add(tradeType === "LONG" ? "long" : "short");
 }
 
-function updateResults(metrics) {
+function updateTradePlanButtons(enabled) {
+  exportPlanJsonButton.disabled = !enabled;
+  exportPlanCsvButton.disabled = !enabled;
+}
+
+function updateResults(tradePlan) {
+  const { metrics, costs, outcomes } = tradePlan;
   outputs.riskAmount.textContent = formatCurrency(metrics.riskAmount);
   outputs.positionSize.textContent = `${formatNumber(metrics.positionSize, 2)} u`;
   outputs.potentialLoss.textContent = formatCurrency(metrics.potentialLoss);
   outputs.potentialProfit.textContent = formatCurrency(metrics.potentialProfit);
+  outputs.estimatedRoundTripCosts.textContent = formatCurrency(costs.estimatedRoundTripCosts);
+  outputs.netPotentialProfit.textContent = formatCurrency(outcomes.netPotentialProfit);
   outputs.rrRatio.textContent = `1 : ${formatNumber(metrics.rrRatio, 2)}`;
   outputs.stopDistance.textContent = formatNumber(metrics.stopDistance, 4);
   outputs.notionalValue.textContent = formatCurrency(metrics.notionalValue);
+  outputs.netRrRatio.textContent = `1 : ${formatNumber(outcomes.netRrRatio, 2)}`;
 
   const rrMessage =
-    metrics.rrRatio >= 2
+    outcomes.netRrRatio >= 2
       ? "El ratio es atractivo y da margen para equivocarte sin romper la gestión de riesgo."
       : "El ratio es ajustado; conviene revisar si el objetivo compensa el riesgo asumido.";
 
   outputs.insightText.textContent =
     `Operación ${metrics.tradeType.toLowerCase()}: arriesgas ${formatCurrency(metrics.riskAmount)} ` +
-    `con una distancia al stop de ${formatNumber(metrics.stopDistance, 4)}. ${rrMessage}`;
+    `con una distancia al stop de ${formatNumber(metrics.stopDistance, 4)} y costes estimados de ` +
+    `${formatCurrency(costs.estimatedRoundTripCosts)}. ${rrMessage}`;
 
   updateBadge(metrics.tradeType);
+  updateTradePlanButtons(true);
 }
 
 function resetResults() {
@@ -289,13 +322,17 @@ function resetResults() {
   outputs.positionSize.textContent = "--";
   outputs.potentialLoss.textContent = "--";
   outputs.potentialProfit.textContent = "--";
+  outputs.estimatedRoundTripCosts.textContent = "--";
+  outputs.netPotentialProfit.textContent = "--";
   outputs.rrRatio.textContent = "--";
   outputs.stopDistance.textContent = "--";
   outputs.notionalValue.textContent = "--";
+  outputs.netRrRatio.textContent = "--";
   outputs.insightText.textContent =
     "Completa el formulario para obtener una lectura de la operación y validar si el escenario tiene sentido.";
   outputs.tradeTypeBadge.textContent = "Esperando datos";
   outputs.tradeTypeBadge.className = "trade-badge neutral";
+  updateTradePlanButtons(false);
 }
 
 function renderScenarioTable() {
@@ -425,9 +462,10 @@ function exportScenariosToCsv() {
 
   const headers = [
     "numero", "fecha", "estrategia", "notas", "tipo", "capital", "riesgo_percent",
-    "entrada", "stop_loss", "objetivo", "riesgo_dinero", "distancia_stop",
+    "entrada", "stop_loss", "objetivo", "fee_percent", "slippage_percent", "riesgo_dinero", "distancia_stop",
     "distancia_objetivo", "tamano_posicion", "perdida_potencial",
-    "beneficio_potencial", "ratio_r", "valor_nocional",
+    "beneficio_potencial", "ratio_r", "valor_nocional", "costes_round_trip",
+    "perdida_neta", "beneficio_neto", "ratio_r_neto",
   ];
 
   const rows = state.scenarios.map((scenario, index) => [
@@ -441,6 +479,8 @@ function exportScenariosToCsv() {
     scenario.entryPrice,
     scenario.stopLoss,
     scenario.exitPrice,
+    scenario.feePercent,
+    scenario.slippagePercent,
     scenario.riskAmount,
     scenario.stopDistance,
     scenario.targetDistance,
@@ -449,13 +489,17 @@ function exportScenariosToCsv() {
     scenario.potentialProfit,
     scenario.rrRatio,
     scenario.notionalValue,
+    scenario.estimatedRoundTripCosts,
+    scenario.netPotentialLoss,
+    scenario.netPotentialProfit,
+    scenario.netRrRatio,
   ]);
 
   const csvContent = [headers, ...rows]
     .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
     .join("\n");
 
-  downloadCsvFile("escenarios-trading.csv", csvContent);
+  downloadTextFile("escenarios-trading.csv", csvContent, "text/csv;charset=utf-8;");
   formMessage.textContent = "CSV exportado con tus escenarios activos.";
 }
 
@@ -467,9 +511,10 @@ function exportHistoryToCsv() {
 
   const headers = [
     "fecha", "estrategia", "notas", "tipo", "capital", "riesgo_percent",
-    "entrada", "stop_loss", "objetivo", "riesgo_dinero", "distancia_stop",
+    "entrada", "stop_loss", "objetivo", "fee_percent", "slippage_percent", "riesgo_dinero", "distancia_stop",
     "distancia_objetivo", "tamano_posicion", "perdida_potencial",
-    "beneficio_potencial", "ratio_r", "valor_nocional",
+    "beneficio_potencial", "ratio_r", "valor_nocional", "costes_round_trip",
+    "perdida_neta", "beneficio_neto", "ratio_r_neto",
   ];
 
   const rows = state.history.map((record) => [
@@ -482,6 +527,8 @@ function exportHistoryToCsv() {
     record.entryPrice,
     record.stopLoss,
     record.exitPrice,
+    record.feePercent,
+    record.slippagePercent,
     record.riskAmount,
     record.stopDistance,
     record.targetDistance,
@@ -490,13 +537,17 @@ function exportHistoryToCsv() {
     record.potentialProfit,
     record.rrRatio,
     record.notionalValue,
+    record.estimatedRoundTripCosts,
+    record.netPotentialLoss,
+    record.netPotentialProfit,
+    record.netRrRatio,
   ]);
 
   const csvContent = [headers, ...rows]
     .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
     .join("\n");
 
-  downloadCsvFile("historial-trading.csv", csvContent);
+  downloadTextFile("historial-trading.csv", csvContent, "text/csv;charset=utf-8;");
   formMessage.textContent = "CSV exportado con el histórico completo.";
 }
 
@@ -507,7 +558,7 @@ function saveScenario() {
   }
 
   const timestamp = new Date().toISOString();
-  const record = createScenarioRecord(lastCalculation.values, lastCalculation.metrics, timestamp);
+  const record = createScenarioRecord(lastCalculation.plan, timestamp);
 
   state.scenarios.unshift(record);
   state.history.unshift(record);
@@ -516,6 +567,28 @@ function saveScenario() {
   renderScenarioTable();
   renderHistoryTable();
   formMessage.textContent = "Escenario guardado en el comparador y añadido al histórico.";
+}
+
+function exportCurrentTradePlanJson() {
+  if (!lastCalculation) {
+    formMessage.textContent = "Primero calcula una operación válida antes de exportar el trade plan.";
+    return;
+  }
+
+  const filename = `${lastCalculation.plan.planId}.json`;
+  downloadTextFile(filename, riskEngine.serializeTradePlanJson(lastCalculation.plan), "application/json;charset=utf-8;");
+  formMessage.textContent = "Trade plan JSON exportado.";
+}
+
+function exportCurrentTradePlanCsv() {
+  if (!lastCalculation) {
+    formMessage.textContent = "Primero calcula una operación válida antes de exportar el trade plan.";
+    return;
+  }
+
+  const filename = `${lastCalculation.plan.planId}.csv`;
+  downloadTextFile(filename, riskEngine.serializeTradePlanCsv(lastCalculation.plan), "text/csv;charset=utf-8;");
+  formMessage.textContent = "Trade plan CSV exportado.";
 }
 
 function parsePriceSeries(rawValue) {
@@ -864,10 +937,10 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  const metrics = calculateRisk(values);
-  lastCalculation = { values, metrics };
+  const tradePlan = buildTradePlan(values);
+  lastCalculation = { values, metrics: tradePlan.metrics, plan: tradePlan };
   formMessage.textContent = "";
-  updateResults(metrics);
+  updateResults(tradePlan);
 });
 
 form.addEventListener("reset", () => {
@@ -893,9 +966,9 @@ saveScenarioButton.addEventListener("click", () => {
     return;
   }
 
-  const metrics = calculateRisk(values);
-  lastCalculation = { values, metrics };
-  updateResults(metrics);
+  const tradePlan = buildTradePlan(values);
+  lastCalculation = { values, metrics: tradePlan.metrics, plan: tradePlan };
+  updateResults(tradePlan);
   saveScenario();
 });
 
@@ -930,6 +1003,8 @@ clearHistoryButton.addEventListener("click", () => {
 
 exportScenariosButton.addEventListener("click", exportScenariosToCsv);
 exportHistoryButton.addEventListener("click", exportHistoryToCsv);
+exportPlanJsonButton.addEventListener("click", exportCurrentTradePlanJson);
+exportPlanCsvButton.addEventListener("click", exportCurrentTradePlanCsv);
 
 [historySearchInput, historyTypeFilter, historyStrategyFilter].forEach((element) => {
   element.addEventListener("input", renderHistoryTable);

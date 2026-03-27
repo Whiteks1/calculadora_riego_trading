@@ -14,8 +14,9 @@ std::string formatNumber(double value, int precision = 6) {
 
 int main(int argc, char* argv[]) {
   try {
-    if (argc != 6) {
-      throw std::runtime_error("Uso: risk_case_runner <capital> <riskPercent> <entry> <stop> <exit>");
+    if (argc != 6 && argc != 8) {
+      throw std::runtime_error(
+          "Uso: risk_case_runner <capital> <riskPercent> <entry> <stop> <exit> [feePercent slippagePercent]");
     }
 
     TradeInput input;
@@ -24,6 +25,10 @@ int main(int argc, char* argv[]) {
     input.entryPrice = std::stod(argv[3]);
     input.stopLoss = std::stod(argv[4]);
     input.exitPrice = std::stod(argv[5]);
+    if (argc == 8) {
+      input.feePercent = std::stod(argv[6]);
+      input.slippagePercent = std::stod(argv[7]);
+    }
 
     const TradeMetrics metrics = calculateRisk(input);
 
