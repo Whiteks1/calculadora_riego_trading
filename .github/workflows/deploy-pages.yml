@@ -31,7 +31,7 @@ jobs:
           cp index.html _site/index.html
           cp styles.css _site/styles.css
           cp risk-core.js _site/risk-core.js
-          cp app.js _site/app.js
+          cp -R web _site/web
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
