@@ -72,10 +72,14 @@ Roadmap corto del repo:
 - `cpp/trade_plan_runner.cpp`: runner C++ para verificar paridad del trade plan canonico.
 - `cpp/CMakeLists.txt`: configuracion minima para compilar con CMake.
 - `tests/risk_cases.csv`: fixtures compartidos para verificar calculos.
+- `tests/fixtures/expected_trade_plan.json`: fixture canonica del trade plan.
+- `tests/fixtures/expected_trade_plan.csv`: fixture canonica del trade plan en CSV.
+- `tests/fixtures/expected_quantlab_handoff.json`: fixture canonica del handoff hacia QuantLab.
 - `tests/run_js_tests.js`: runner de pruebas JS.
 - `tests/run_cross_tests.js`: pruebas de paridad entre JS y C++.
 - `tests/run_trade_plan_cross_tests.js`: pruebas de paridad del trade plan entre JS y C++.
 - `tests/run_cli_tests.js`: pruebas del path headless/CLI.
+- `tests/run_contract_fixture_tests.js`: verificacion de fixtures canonicas contra la salida real de la CLI.
 
 ## Como abrirlo
 
@@ -158,6 +162,12 @@ Ese workflow valida:
 - tests JS y headless CLI
 - fixture canónica del trade plan y del handoff hacia QuantLab
 - paridad entre JS y C++ para métricas y trade plans
+
+Eso deja como baseline del repo:
+
+- fixtures versionadas en control de versiones
+- paridad automatizada entre runtimes
+- drift visible antes de integrar nada en QuantLab
 
 ## Siguientes pasos recomendados
 
