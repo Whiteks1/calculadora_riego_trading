@@ -32,9 +32,10 @@ El repositorio tambien empieza a actuar como un **pre-trade risk workbench** reu
 
 - `index.html`: estructura de la aplicacion.
 - `styles.css`: diseno responsive.
-- `risk-core.js`: logica compartida de riesgo para la web y los tests JS.
 - `risk-core.js`: core reutilizable de riesgo, costes y trade-plan exports.
 - `app.js`: validacion y calculos.
+- `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
+- `package.json`: entrypoint CLI y scripts de test ligeros.
 - `.github/workflows/deploy-pages.yml`: despliegue automatico a GitHub Pages.
 - `cpp/main.cpp`: version consola del motor.
 - `cpp/risk_engine.cpp`: motor compartido de calculo en C++.
@@ -45,6 +46,7 @@ El repositorio tambien empieza a actuar como un **pre-trade risk workbench** reu
 - `tests/run_js_tests.js`: runner de pruebas JS.
 - `tests/run_cross_tests.js`: pruebas de paridad entre JS y C++.
 - `tests/run_trade_plan_cross_tests.js`: pruebas de paridad del trade plan entre JS y C++.
+- `tests/run_cli_tests.js`: pruebas del path headless/CLI.
 
 ## Como abrirlo
 
@@ -102,6 +104,7 @@ cmake --build cpp/build --config Release
 
 ```bash
 node tests/run_js_tests.js
+node tests/run_cli_tests.js
 ```
 
 ### C++
@@ -115,7 +118,28 @@ node tests/run_trade_plan_cross_tests.js
 
 ## Siguientes pasos recomendados
 
-1. Anadir un path headless/CLI para generar trade plans sin navegador.
-2. Documentar el contrato de handoff para QuantLab.
-3. Incorporar shorts reales y mas reglas al backtester.
-4. Guardar y exportar resultados del backtester.
+1. Documentar el contrato de handoff para QuantLab.
+2. Incorporar shorts reales y mas reglas al backtester.
+3. Guardar y exportar resultados del backtester.
+
+## CLI headless
+
+Ejemplo con archivo JSON:
+
+```bash
+node cli/trade-plan.js --input-file request.json --json-out outputs/trade_plan.json --csv-out outputs/trade_plan.csv
+```
+
+Ejemplo con flags directos:
+
+```bash
+node cli/trade-plan.js --capital 1000 --risk-percent 1 --entry-price 2000 --stop-loss 1950 --exit-price 2100 --fee-percent 0.1 --slippage-percent 0.05 --strategy-name "ETH breakout" --trade-notes "Headless smoke"
+```
+
+La CLI:
+
+- no depende del DOM ni de `localStorage`
+- reutiliza `risk-core.js`
+- imprime el trade plan JSON canónico por `stdout`
+- puede escribir JSON y CSV de forma determinista
+- devuelve código distinto de cero si el setup es inválido
