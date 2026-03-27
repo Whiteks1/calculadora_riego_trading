@@ -205,6 +205,7 @@
           <h2>Operaciones guardadas</h2>
         </div>
         <div class="scenario-toolbar">
+          <button type="button" class="ghost-button" id="exportHistory">Exportar histórico CSV</button>
           <button type="button" class="ghost-button" id="clearHistory">Vaciar histórico</button>
           <span class="trade-badge neutral" id="historyCountBadge">0 registros</span>
         </div>
@@ -361,6 +362,16 @@
         <svg id="backtestChart" class="backtest-chart" viewBox="0 0 800 260" role="img" aria-label="Gráfico del backtest"></svg>
       </div>
 
+      <div class="chart-shell">
+        <div class="chart-legend">
+          <span class="legend-item">
+            <span class="legend-dot equity-line"></span>
+            Equity curve
+          </span>
+        </div>
+        <svg id="equityChart" class="backtest-chart" viewBox="0 0 800 220" role="img" aria-label="Curva de equity del backtest"></svg>
+      </div>
+
       <div class="backtest-grid">
         <div class="table-shell">
           <table class="scenario-table">
@@ -404,6 +415,7 @@
     </section>
   </main>
 
+  <script src="risk-core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

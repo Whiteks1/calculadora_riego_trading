@@ -30,6 +30,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/index.html
           cp styles.css _site/styles.css
+          cp risk-core.js _site/risk-core.js
           cp app.js _site/app.js
 
       - name: Upload Pages artifact

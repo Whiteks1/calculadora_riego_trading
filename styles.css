@@ -478,6 +478,10 @@ button:disabled {
   background: #0a7a67;
 }
 
+.legend-dot.equity-line {
+  background: #2b5cff;
+}
+
 .backtest-chart {
   width: 100%;
   min-height: 260px;
@@ -507,6 +511,10 @@ button:disabled {
 
 .chart-series.long {
   stroke: #0a7a67;
+}
+
+.chart-series.equity {
+  stroke: #2b5cff;
 }
 
 .chart-empty {

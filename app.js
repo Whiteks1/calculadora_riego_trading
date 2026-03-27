@@ -2,6 +2,7 @@ const form = document.getElementById("riskForm");
 const fillExampleButton = document.getElementById("fillExample");
 const saveScenarioButton = document.getElementById("saveScenario");
 const exportScenariosButton = document.getElementById("exportScenarios");
+const exportHistoryButton = document.getElementById("exportHistory");
 const clearScenariosButton = document.getElementById("clearScenarios");
 const clearHistoryButton = document.getElementById("clearHistory");
 const formMessage = document.getElementById("formMessage");
@@ -17,8 +18,10 @@ const backtestForm = document.getElementById("backtestForm");
 const loadBacktestExampleButton = document.getElementById("loadBacktestExample");
 const backtestMessage = document.getElementById("backtestMessage");
 const backtestChart = document.getElementById("backtestChart");
+const equityChart = document.getElementById("equityChart");
 const backtestSignalBody = document.getElementById("backtestSignalBody");
 const backtestTradesBody = document.getElementById("backtestTradesBody");
+const riskEngine = window.RiskCore;
 
 const outputs = {
   riskAmount: document.getElementById("riskAmount"),
@@ -135,74 +138,15 @@ function readFormValues() {
 }
 
 function resolveTradeType(entryPrice, stopLoss) {
-  return stopLoss < entryPrice ? "LONG" : "SHORT";
+  return riskEngine.resolveTradeType(entryPrice, stopLoss);
 }
 
 function validateValues(values) {
-  const requiredFields = [
-    ["capital", "Introduce un capital mayor que 0."],
-    ["riskPercent", "Introduce un porcentaje de riesgo mayor que 0."],
-    ["entryPrice", "Introduce un precio de entrada válido."],
-    ["stopLoss", "Introduce un stop loss válido."],
-    ["exitPrice", "Introduce un precio objetivo válido."],
-  ];
-
-  for (const [key, message] of requiredFields) {
-    if (!Number.isFinite(values[key]) || values[key] <= 0) {
-      return message;
-    }
-  }
-
-  if (values.riskPercent > 100) {
-    return "El porcentaje de riesgo no puede ser mayor que 100%.";
-  }
-
-  if (values.entryPrice === values.stopLoss) {
-    return "El precio de entrada y el stop loss no pueden ser iguales.";
-  }
-
-  if (values.entryPrice === values.exitPrice) {
-    return "El precio de entrada y el precio objetivo no pueden ser iguales.";
-  }
-
-  const tradeType = resolveTradeType(values.entryPrice, values.stopLoss);
-
-  if (tradeType === "LONG" && values.exitPrice <= values.entryPrice) {
-    return "En una operación LONG el objetivo debe quedar por encima de la entrada.";
-  }
-
-  if (tradeType === "SHORT" && values.exitPrice >= values.entryPrice) {
-    return "En una operación SHORT el objetivo debe quedar por debajo de la entrada.";
-  }
-
-  return "";
+  return riskEngine.validateTradeValues(values);
 }
 
 function calculateRisk(values) {
-  const tradeType = resolveTradeType(values.entryPrice, values.stopLoss);
-  const riskAmount = values.capital * (values.riskPercent / 100);
-  const stopDistance = Math.abs(values.entryPrice - values.stopLoss);
-  const targetDistance = Math.abs(values.exitPrice - values.entryPrice);
-  const positionSize = riskAmount / stopDistance;
-  const potentialLoss = positionSize * stopDistance;
-  const potentialProfit = positionSize * targetDistance;
-  const rrRatio = potentialProfit / potentialLoss;
-  const notionalValue = positionSize * values.entryPrice;
-
-  return {
-    tradeType,
-    riskAmount,
-    stopDistance,
-    targetDistance,
-    positionSize,
-    potentialLoss,
-    potentialProfit,
-    rrRatio,
-    notionalValue,
-    expectedTargetDirection: tradeType === "LONG"
-      ? values.exitPrice > values.entryPrice
-      : values.exitPrice < values.entryPrice,
-  };
+  return riskEngine.calculateRiskMetrics(values);
 }
 
 function createScenarioRecord(values, metrics, timestamp = new Date().toISOString()) {
@@ -437,6 +381,7 @@ function renderHistoryTable() {
     `;
     historyCountBadge.textContent = "0 registros";
     historyCountBadge.className = "trade-badge neutral";
+    exportHistoryButton.disabled = true;
     return;
   }
 
@@ -469,6 +414,7 @@ function renderHistoryTable() {
 
   historyCountBadge.textContent = `${filteredHistory.length} / ${state.history.length} registros`;
   historyCountBadge.className = "trade-badge neutral";
+  exportHistoryButton.disabled = false;
 }
 
 function exportScenariosToCsv() {
@@ -511,6 +457,47 @@ function exportScenariosToCsv() {
 
   downloadCsvFile("escenarios-trading.csv", csvContent);
   formMessage.textContent = "CSV exportado con tus escenarios activos.";
+}
+
+function exportHistoryToCsv() {
+  if (state.history.length === 0) {
+    formMessage.textContent = "No hay histórico para exportar.";
+    return;
+  }
+
+  const headers = [
+    "fecha", "estrategia", "notas", "tipo", "capital", "riesgo_percent",
+    "entrada", "stop_loss", "objetivo", "riesgo_dinero", "distancia_stop",
+    "distancia_objetivo", "tamano_posicion", "perdida_potencial",
+    "beneficio_potencial", "ratio_r", "valor_nocional",
+  ];
+
+  const rows = state.history.map((record) => [
+    record.createdAt,
+    record.strategy,
+    record.notes,
+    record.tradeType,
+    record.capital,
+    record.riskPercent,
+    record.entryPrice,
+    record.stopLoss,
+    record.exitPrice,
+    record.riskAmount,
+    record.stopDistance,
+    record.targetDistance,
+    record.positionSize,
+    record.potentialLoss,
+    record.potentialProfit,
+    record.rrRatio,
+    record.notionalValue,
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((value) => escapeCsvValue(value)).join(","))
+    .join("\n");
+
+  downloadCsvFile("historial-trading.csv", csvContent);
+  formMessage.textContent = "CSV exportado con el histórico completo.";
 }
 
 function saveScenario() {
@@ -668,6 +655,7 @@ function runBacktest(values) {
       shortMa,
       longMa,
       signal,
+      equity,
     });
   }
 
@@ -689,6 +677,7 @@ function runBacktest(values) {
     });
 
     cash = netProceeds;
+    signals[signals.length - 1].equity = cash;
   }
 
   const winningTrades = trades.filter((trade) => trade.profit > 0).length;
@@ -747,6 +736,42 @@ function renderBacktestChart(prices, shortSeries, longSeries) {
     <polyline class="chart-series price" points="${buildPoints(prices)}"></polyline>
     <polyline class="chart-series short" points="${buildPoints(shortSeries)}"></polyline>
     <polyline class="chart-series long" points="${buildPoints(longSeries)}"></polyline>
+  `;
+}
+
+function renderEquityChart(signals) {
+  const width = 800;
+  const height = 220;
+  const padding = 24;
+  const equitySeries = signals.map((signal) => signal.equity).filter(Number.isFinite);
+
+  if (equitySeries.length === 0) {
+    equityChart.innerHTML = `<text class="chart-empty" x="50%" y="50%" text-anchor="middle">Sin equity para dibujar</text>`;
+    return;
+  }
+
+  const minValue = Math.min(...equitySeries);
+  const maxValue = Math.max(...equitySeries);
+  const range = maxValue - minValue || 1;
+
+  const points = signals
+    .map((signal, index) => {
+      const x = padding + (index / Math.max(signals.length - 1, 1)) * (width - padding * 2);
+      const y = height - padding - ((signal.equity - minValue) / range) * (height - padding * 2);
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  const gridLines = [0.25, 0.5, 0.75]
+    .map((ratio) => {
+      const y = padding + (height - padding * 2) * ratio;
+      return `<line class="chart-grid-line" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`;
+    })
+    .join("");
+
+  equityChart.innerHTML = `
+    ${gridLines}
+    <polyline class="chart-series equity" points="${points}"></polyline>
   `;
 }
 
@@ -814,6 +839,7 @@ function resetBacktestResults() {
     </tr>
   `;
   backtestChart.innerHTML = `<text class="chart-empty" x="50%" y="50%" text-anchor="middle">Carga una serie y ejecuta el backtest</text>`;
+  equityChart.innerHTML = `<text class="chart-empty" x="50%" y="50%" text-anchor="middle">La curva de equity aparecerá aquí</text>`;
 }
 
 function bootstrapState() {
@@ -903,6 +929,7 @@ clearHistoryButton.addEventListener("click", () => {
 });
 
 exportScenariosButton.addEventListener("click", exportScenariosToCsv);
+exportHistoryButton.addEventListener("click", exportHistoryToCsv);
 
 [historySearchInput, historyTypeFilter, historyStrategyFilter].forEach((element) => {
   element.addEventListener("input", renderHistoryTable);
@@ -923,6 +950,7 @@ backtestForm.addEventListener("submit", (event) => {
   const result = runBacktest(values);
   updateBacktestResults(result);
   renderBacktestChart(values.prices, result.shortSeries, result.longSeries);
+  renderEquityChart(result.signals);
   renderBacktestTables(result);
   backtestMessage.textContent = "";
 });
