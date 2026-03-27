@@ -6,6 +6,7 @@ trading_risk_calculator
 trading_risk_calculator.exe
 trading_risk_calculator_*.exe
 risk_case_runner.exe
+trade_plan_runner.exe
 risk_engine*.exe
 .vscode/
 temp-input*.txt

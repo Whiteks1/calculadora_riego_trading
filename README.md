@@ -107,6 +107,7 @@ cmake --build cpp/build --config Release
 ```bash
 node tests/run_js_tests.js
 node tests/run_cli_tests.js
+node tests/run_contract_fixture_tests.js
 ```
 
 ### C++
@@ -117,6 +118,19 @@ g++ -std=c++17 -O2 -o trade_plan_runner.exe cpp/trade_plan_runner.cpp cpp/risk_e
 node tests/run_cross_tests.js
 node tests/run_trade_plan_cross_tests.js
 ```
+
+## CI de contrato y paridad
+
+El repo incluye un workflow de GitHub Actions en:
+
+- `.github/workflows/contract-parity-ci.yml`
+
+Ese workflow valida:
+
+- sintaxis del core y de la CLI
+- tests JS y headless CLI
+- fixture canónica del trade plan y del handoff hacia QuantLab
+- paridad entre JS y C++ para métricas y trade plans
 
 ## Siguientes pasos recomendados
 
