@@ -2,6 +2,11 @@
 
 Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y logica aplicada a trading.
 
+Repo publico de portfolio:
+- descripcion enfocada a pre-trade risk workbench
+- website apuntando al deploy en GitHub Pages
+- topics alineados con trading, risk-management, javascript, cpp y quantlab
+
 Hoy este repositorio debe leerse principalmente como un **pre-trade risk workbench** reusable y acotado:
 - el navegador sigue siendo una superficie de operador
 - el calculo vive en un core compartido
@@ -75,10 +80,10 @@ npm test
 - `index.html`: estructura de la aplicacion.
 - `styles.css`: diseno responsive.
 - `risk-core.js`: core reutilizable de riesgo, costes y trade-plan exports.
-- `app.js`: bootstrap ligero de la app web.
 - `web/shared.js`: formato, lectura de formularios, persistencia y descargas.
 - `web/risk-ui.js`: calculadora, escenarios, historico y exportaciones web.
 - `web/backtest-ui.js`: mini backtester visual y render de tablas/graficos.
+- `web/main.js`: bootstrap final de la app web.
 - `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
 - `package.json`: entrypoint CLI y scripts de test ligeros.
 - `package-lock.json`: lockfile de dependencias para reproducibilidad local y CI.
@@ -195,6 +200,17 @@ Ese workflow valida:
 - pruebas UI/browser sobre el flujo principal
 - fixture canónica del trade plan y del handoff hacia QuantLab
 - paridad entre JS y C++ para métricas y trade plans
+
+## Deploy Pages
+
+El deploy de GitHub Pages publica:
+
+- `index.html`
+- `styles.css`
+- `risk-core.js`
+- el directorio completo `web/`
+
+Eso evita que la web pública se rompa cuando el frontend usa módulos separados.
 
 Eso deja como baseline del repo:
 
