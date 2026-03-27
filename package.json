@@ -1,7 +1,7 @@
 {
   "name": "calculadora-riego-trading",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Pre-trade risk workbench and deterministic trade-plan exports.",
   "bin": {
     "trade-plan-cli": "./cli/trade-plan.js"

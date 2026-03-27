@@ -1,175 +1,180 @@
-# Calculadora web de riesgo para trading
+# Trading Risk Calculator
 
-Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y logica aplicada a trading.
+HTML, CSS, and JavaScript project focused on practical trading workflows, form handling, validation, and useful pre-trade logic.
 
-Repo publico de portfolio:
-- descripcion enfocada a pre-trade risk workbench
-- website apuntando al deploy en GitHub Pages
-- topics alineados con trading, risk-management, javascript, cpp y quantlab
+Current status: `v1.0.0`, finalized as a first stable portfolio release.
 
-Hoy este repositorio debe leerse principalmente como un **pre-trade risk workbench** reusable y acotado:
-- el navegador sigue siendo una superficie de operador
-- el calculo vive en un core compartido
-- los trade plans se exportan de forma determinista en JSON y CSV
-- la CLI headless permite un path reproducible sin depender del DOM
-- la version C++ sirve como runtime alternativo para paridad y validacion cruzada
+Public portfolio positioning:
+- repository description centered on a pre-trade risk workbench
+- website pointing to the GitHub Pages deployment
+- topics aligned with trading, risk management, JavaScript, C++, and QuantLab
 
-## Rol del repositorio
+Today, this repository should be read primarily as a reusable and bounded **pre-trade risk workbench**:
+- the browser remains an operator-facing surface
+- calculations live in a shared core
+- trade plans are exported deterministically in JSON and CSV
+- the headless CLI provides a reproducible path without depending on the DOM
+- the C++ version acts as an alternate runtime for parity and cross-validation
 
-Este repo:
-- planifica operaciones
-- genera artifacts deterministas
-- exporta un handoff acotado hacia QuantLab
+## Repository Role
 
-Este repo no es dueno de:
+This repo:
+- plans trades
+- generates deterministic artifacts
+- exports a bounded handoff toward QuantLab
+
+This repo does not own:
 - `ExecutionPolicy`
 - `ExecutionIntent`
-- approval o submit
+- approval or submit flows
 - broker adapters
-- paper o live execution
+- paper or live execution
 
-Regla base:
-- la calculadora planifica
-- QuantLab valida
-- QuantLab decide
-- QuantLab ejecuta
+Base rule:
+- the calculator plans
+- QuantLab validates
+- QuantLab decides
+- QuantLab executes
 
-Roadmap corto del repo:
+Short repo roadmap:
 
 - `docs/pretrade-workbench-roadmap.md`
+- `docs/portfolio-final-checklist.md`
+- `CHANGELOG.md`
 
-## Incluye
+## Included Features
 
-- Formulario con capital, riesgo por operacion, entrada, stop loss y objetivo.
-- Fees y slippage opcionales en la calculadora principal.
-- Calculo del dinero arriesgado y del tamano estimado de la posicion.
-- Beneficio potencial y ratio riesgo/beneficio.
-- Trade plan canonico con costes estimados y resultados netos.
-- Tabla para comparar escenarios guardados.
-- Persistencia de escenarios con `localStorage`.
-- Historico con fecha, estrategia y notas.
-- Filtros y busqueda sobre operaciones guardadas.
-- Exportacion CSV de escenarios guardados.
-- Exportacion CSV del historico completo.
-- Exportacion de trade plan JSON/CSV desde la web.
-- Mini backtester visual con medias moviles, comision, slippage y equity curve.
-- Workflow de GitHub Pages para desplegar la web automatica desde `main`.
-- Version en C++ consola del motor de calculo con exportacion CSV/JSON.
-- Casos de prueba compartidos entre JS y C++ para metricas y trade plans.
-- Interfaz preparada para crecer sin rehacer la base.
+- Trade form with capital, risk per trade, entry, stop loss, and target price
+- Optional fees and slippage in the main calculator
+- Risk amount and estimated position size calculation
+- Potential profit and risk/reward ratio
+- Canonical trade plan with estimated costs and net outcomes
+- Table for comparing saved scenarios
+- Scenario persistence via `localStorage`
+- History with timestamp, strategy, and notes
+- Filters and search over saved trades
+- CSV export for saved scenarios
+- CSV export for full trade history
+- Trade plan JSON/CSV export from the web app
+- Visual mini backtester with moving averages, commission, slippage, and equity curve
+- GitHub Pages workflow for automatic deployment from `main`
+- C++ console version of the calculation engine with CSV/JSON export
+- Shared test cases between JS and C++ for metrics and trade plans
+- Frontend structure ready to grow without rebuilding the base
 
-## Arranque rapido
+## Quick Start
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Luego abre:
+Then open:
 
 - `http://127.0.0.1:4173`
 
-Para correr la bateria principal de comprobaciones:
+To run the main verification suite:
 
 ```bash
 npm test
 ```
 
-## Archivos
+## Project Files
 
-- `index.html`: estructura de la aplicacion.
-- `styles.css`: diseno responsive.
-- `risk-core.js`: core reutilizable de riesgo, costes y trade-plan exports.
-- `web/shared.js`: formato, lectura de formularios, persistencia y descargas.
-- `web/risk-ui.js`: calculadora, escenarios, historico y exportaciones web.
-- `web/backtest-ui.js`: mini backtester visual y render de tablas/graficos.
-- `web/main.js`: bootstrap final de la app web.
-- `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
-- `package.json`: entrypoint CLI y scripts de test ligeros.
-- `package-lock.json`: lockfile de dependencias para reproducibilidad local y CI.
-- `playwright.config.js`: configuracion de pruebas UI/browser.
-- `scripts/serve-static.js`: servidor estatico minimo para pruebas de navegador.
-- `scripts/clean-local-artifacts.js`: limpieza local opcional de artefactos ignorados.
-- `docs/pretrade-workbench-roadmap.md`: posicionamiento, limites y roadmap corto del repo.
-- `docs/quantlab-handoff-contract.md`: boundary y contrato de handoff hacia QuantLab.
-- `examples/quantlab_handoff_request.json`: ejemplo de request para el path headless.
-- `.github/workflows/deploy-pages.yml`: despliegue automatico a GitHub Pages.
-- `.github/workflows/contract-parity-ci.yml`: CI de contrato y paridad.
-- `cpp/main.cpp`: version consola del motor.
-- `cpp/risk_engine.cpp`: motor compartido de calculo en C++.
-- `cpp/risk_case_runner.cpp`: runner C++ para verificar paridad contra los fixtures compartidos.
-- `cpp/trade_plan_runner.cpp`: runner C++ para verificar paridad del trade plan canonico.
-- `cpp/CMakeLists.txt`: configuracion minima para compilar con CMake.
-- `tests/risk_cases.csv`: fixtures compartidos para verificar calculos.
-- `tests/fixtures/expected_trade_plan.json`: fixture canonica del trade plan.
-- `tests/fixtures/expected_trade_plan.csv`: fixture canonica del trade plan en CSV.
-- `tests/fixtures/expected_quantlab_handoff.json`: fixture canonica del handoff hacia QuantLab.
-- `tests/run_js_tests.js`: runner de pruebas JS.
-- `tests/run_cross_tests.js`: pruebas de paridad entre JS y C++.
-- `tests/run_trade_plan_cross_tests.js`: pruebas de paridad del trade plan entre JS y C++.
-- `tests/run_cli_tests.js`: pruebas del path headless/CLI.
-- `tests/run_contract_fixture_tests.js`: verificacion de fixtures canonicas contra la salida real de la CLI.
+- `index.html`: application structure
+- `styles.css`: responsive styling
+- `risk-core.js`: reusable core for risk, cost, and trade-plan exports
+- `web/shared.js`: formatting, form reading, persistence, and downloads
+- `web/risk-ui.js`: calculator, scenarios, history, and web exports
+- `web/backtest-ui.js`: visual mini backtester and chart/table rendering
+- `web/main.js`: final browser bootstrap
+- `cli/trade-plan.js`: headless CLI for deterministic trade-plan generation without a browser
+- `package.json`: CLI entry point and developer scripts
+- `package-lock.json`: dependency lockfile for local and CI reproducibility
+- `playwright.config.js`: browser/UI test configuration
+- `scripts/serve-static.js`: minimal static server for browser testing and local preview
+- `scripts/clean-local-artifacts.js`: optional cleanup for ignored local artifacts
+- `docs/pretrade-workbench-roadmap.md`: positioning, boundaries, and short roadmap
+- `docs/quantlab-handoff-contract.md`: boundary and handoff contract toward QuantLab
+- `docs/portfolio-final-checklist.md`: final checklist for the portfolio-ready `v1.0.0` state
+- `examples/quantlab_handoff_request.json`: example request for the headless path
+- `.github/workflows/deploy-pages.yml`: automatic GitHub Pages deployment
+- `.github/workflows/contract-parity-ci.yml`: contract and parity CI
+- `cpp/main.cpp`: console application entry point
+- `cpp/risk_engine.cpp`: shared C++ calculation engine
+- `cpp/risk_case_runner.cpp`: C++ runner for parity checks against shared fixtures
+- `cpp/trade_plan_runner.cpp`: C++ runner for canonical trade-plan parity checks
+- `cpp/CMakeLists.txt`: minimal CMake configuration
+- `tests/risk_cases.csv`: shared fixtures for risk calculations
+- `tests/fixtures/expected_trade_plan.json`: canonical trade-plan fixture
+- `tests/fixtures/expected_trade_plan.csv`: canonical trade-plan CSV fixture
+- `tests/fixtures/expected_quantlab_handoff.json`: canonical QuantLab handoff fixture
+- `tests/run_js_tests.js`: JS test runner
+- `tests/run_cross_tests.js`: JS/C++ parity tests
+- `tests/run_trade_plan_cross_tests.js`: trade-plan parity tests between JS and C++
+- `tests/run_cli_tests.js`: headless/CLI tests
+- `tests/run_contract_fixture_tests.js`: fixture verification against real CLI output
 
-## Como abrirlo
+## How To Use It
 
-1. Ejecuta `npm run dev` o abre `index.html` en tu navegador.
-2. Completa los datos de la operacion.
-3. Pulsa `Calcular riesgo`.
-4. Si quieres guardarla, pulsa `Guardar escenario`.
-5. Los escenarios activos se pueden exportar a CSV y limpiar sin perder el historico.
-6. El historico conserva fecha, estrategia y notas, y se puede filtrar o buscar.
-7. El historico completo tambien se puede exportar a CSV.
-8. El trade plan actual tambien se puede exportar a JSON y CSV.
-9. En el mini backtester puedes pegar precios, elegir parametros y ver señales, operaciones, metricas y la equity curve.
+1. Run `npm run dev` or open `index.html` directly in your browser.
+2. Fill in the trade inputs.
+3. Click `Calcular riesgo`.
+4. If you want to save it, click `Guardar escenario`.
+5. Active scenarios can be exported to CSV and cleared without losing history.
+6. The history keeps date, strategy, and notes, and can be filtered or searched.
+7. The full history can also be exported to CSV.
+8. The current trade plan can be exported to JSON and CSV.
+9. In the mini backtester, you can paste prices, choose parameters, and inspect signals, trades, metrics, and the equity curve.
 
 ## GitHub Pages
 
-La web queda preparada para publicarse con GitHub Pages usando GitHub Actions.
+The site is ready to be published with GitHub Pages through GitHub Actions.
 
-URL esperada del sitio:
+Expected public URL:
 
 - `https://whiteks1.github.io/calculadora_riego_trading/`
 
-Si es la primera vez que activas Pages en el repositorio, revisa en GitHub que la fuente de Pages use `GitHub Actions`.
+If this is the first time you enable Pages for the repository, make sure the Pages source is set to `GitHub Actions`.
 
-## Version C++ consola
+## C++ Console Version
 
-La version de consola permite calcular varias operaciones seguidas, validar mejor el setup y exportar automaticamente:
+The console version can calculate multiple trades in one run, validate setups more strictly, and export:
 - `escenarios_cpp.csv`
 - `trade_plan_cpp.json`
 - `trade_plans_cpp.csv`
 
-### Compilar con g++
+### Build with g++
 
 ```bash
 g++ -std=c++17 -O2 -o trading_risk_calculator cpp/main.cpp cpp/risk_engine.cpp
 ```
 
-### Ejecutar
+### Run
 
 ```bash
 ./trading_risk_calculator
 ```
 
-Al terminar, la app genera `escenarios_cpp.csv`, `trade_plan_cpp.json` y `trade_plans_cpp.csv`.
+At the end, the app generates `escenarios_cpp.csv`, `trade_plan_cpp.json`, and `trade_plans_cpp.csv`.
 
-### Compilar con CMake
+### Build with CMake
 
 ```bash
 cmake -S cpp -B cpp/build
 cmake --build cpp/build --config Release
 ```
 
-## Pruebas compartidas
+## Shared Testing
 
-### JS
+### JavaScript
 
 ```bash
 npm ci
 npm test
 ```
 
-Si quieres correr solo una parte:
+If you want to run only part of the suite:
 
 ```bash
 npm run test:js
@@ -187,88 +192,85 @@ node tests/run_cross_tests.js
 node tests/run_trade_plan_cross_tests.js
 ```
 
-## CI de contrato y paridad
+## Contract And Parity CI
 
-El repo incluye un workflow de GitHub Actions en:
+The repository includes a GitHub Actions workflow in:
 
 - `.github/workflows/contract-parity-ci.yml`
 
-Ese workflow valida:
+That workflow validates:
+- core and CLI syntax
+- JS and headless CLI tests
+- basic browser/UI coverage for the main flow
+- canonical trade-plan and QuantLab handoff fixtures
+- parity between JS and C++ for metrics and trade plans
 
-- sintaxis del core y de la CLI
-- tests JS y headless CLI
-- pruebas UI/browser sobre el flujo principal
-- fixture canónica del trade plan y del handoff hacia QuantLab
-- paridad entre JS y C++ para métricas y trade plans
+This gives the repo the following baseline:
+- versioned fixtures in source control
+- automated parity across runtimes
+- real browser smoke tests for the main interface
+- visible drift before anything is integrated into QuantLab
 
-## Deploy Pages
+## Pages Deployment
 
-El deploy de GitHub Pages publica:
+The GitHub Pages deployment publishes:
 
 - `index.html`
 - `styles.css`
 - `risk-core.js`
-- el directorio completo `web/`
+- the full `web/` directory
 
-Eso evita que la web pública se rompa cuando el frontend usa módulos separados.
+That prevents the public site from breaking when the frontend uses split browser modules.
 
-Eso deja como baseline del repo:
+## Local Cleanup
 
-- fixtures versionadas en control de versiones
-- paridad automatizada entre runtimes
-- smoke tests reales de navegador para la interfaz principal
-- drift visible antes de integrar nada en QuantLab
-
-## Limpieza local
-
-Si quieres dejar la carpeta limpia de artefactos ignorados que hayas generado en local:
+If you want to remove ignored local artifacts generated during development:
 
 ```bash
 npm run clean:artifacts
 ```
 
-## Siguientes pasos recomendados
+## Recommended Next Steps
 
-1. Mantener estable el boundary y el contract del handoff.
-2. Hacer intake downstream en QuantLab cuando haga falta.
-3. Dejar cualquier mejora extra de UX o backtester fuera del camino critico.
+1. Keep the handoff boundary and contract stable.
+2. Extend downstream QuantLab intake only when it is actually needed.
+3. Keep extra UX or backtester ideas outside the critical path unless they support the pre-trade boundary directly.
 
-## CLI headless
+## Headless CLI
 
-Ejemplo con archivo JSON:
+Example with a JSON input file:
 
 ```bash
 node cli/trade-plan.js --input-file request.json --json-out outputs/trade_plan.json --csv-out outputs/trade_plan.csv
 ```
 
-Ejemplo con flags directos:
+Example with direct flags:
 
 ```bash
 node cli/trade-plan.js --capital 1000 --risk-percent 1 --entry-price 2000 --stop-loss 1950 --exit-price 2100 --fee-percent 0.1 --slippage-percent 0.05 --strategy-name "ETH breakout" --trade-notes "Headless smoke"
 ```
 
-La CLI:
+The CLI:
+- does not depend on the DOM or `localStorage`
+- reuses `risk-core.js`
+- prints the canonical trade plan JSON to `stdout`
+- can write deterministic JSON and CSV outputs
+- returns a non-zero exit code when the setup is invalid
 
-- no depende del DOM ni de `localStorage`
-- reutiliza `risk-core.js`
-- imprime el trade plan JSON canónico por `stdout`
-- puede escribir JSON y CSV de forma determinista
-- devuelve código distinto de cero si el setup es inválido
+## QuantLab Handoff
 
-## Handoff hacia QuantLab
+The intended integration with QuantLab is deliberately bounded:
 
-La integración prevista con QuantLab es deliberadamente acotada:
+- this app proposes
+- QuantLab validates
+- QuantLab decides
+- QuantLab executes
 
-- esta app propone
-- QuantLab valida
-- QuantLab decide
-- QuantLab ejecuta
-
-El contrato documentado está en:
+The documented contract lives in:
 
 - `docs/quantlab-handoff-contract.md`
 
-Export opcional del handoff:
+Optional handoff export:
 
 ```bash
 node cli/trade-plan.js \
