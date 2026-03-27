@@ -91,6 +91,23 @@ function run() {
     if (!serializedCsv.startsWith(RiskCore.tradePlanCsvHeaders().join(","))) {
       throw new Error(`${testCase.name}: CSV sin cabecera canónica.`);
     }
+
+    const handoff = RiskCore.createQuantLabHandoff(plan, {
+      handoffId: `${testCase.name}-handoff`,
+    });
+
+    if (handoff.machineContract.contractType !== RiskCore.QUANTLAB_HANDOFF_CONTRACT_TYPE) {
+      throw new Error(`${testCase.name}: handoff contractType inesperado.`);
+    }
+
+    if (handoff.quantlabHints.readyForDraftExecutionIntent !== false) {
+      throw new Error(`${testCase.name}: el handoff no debería quedar listo sin contexto.`);
+    }
+
+    const serializedHandoff = RiskCore.serializeQuantLabHandoffJson(handoff);
+    if (!serializedHandoff.includes("\"pretradeContext\"")) {
+      throw new Error(`${testCase.name}: handoff JSON sin pretradeContext.`);
+    }
   });
 
   console.log(`JS tests ok: ${cases.length} casos verificados con trade plan.`);
