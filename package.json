@@ -7,6 +7,9 @@
     "trade-plan-cli": "./cli/trade-plan.js"
   },
   "scripts": {
+    "dev": "node scripts/serve-static.js --port 4173 --host 127.0.0.1",
+    "start": "npm run dev",
+    "test": "npm run test:js && npm run test:cli && npm run test:contract-fixtures && npm run test:cross && npm run test:trade-plan-cross && npm run test:ui",
     "clean:artifacts": "node scripts/clean-local-artifacts.js",
     "test:js": "node tests/run_js_tests.js",
     "test:cross": "node tests/run_cross_tests.js",

@@ -22,6 +22,16 @@ function readPort() {
   return Number(process.env.PORT || 4173);
 }
 
+function readHost() {
+  const hostIndex = process.argv.indexOf("--host");
+
+  if (hostIndex >= 0 && process.argv[hostIndex + 1]) {
+    return String(process.argv[hostIndex + 1]);
+  }
+
+  return process.env.HOST || "127.0.0.1";
+}
+
 function resolvePath(requestPathname) {
   const normalizedPath = decodeURIComponent(requestPathname === "/" ? "/index.html" : requestPathname);
   const cleanedPath = path.normalize(normalizedPath).replace(/^(\.\.[/\\])+/, "");
@@ -29,6 +39,7 @@ function resolvePath(requestPathname) {
 }
 
 const port = readPort();
+const host = readHost();
 
 const server = http.createServer((request, response) => {
   const parsedUrl = url.parse(request.url || "/");
@@ -52,6 +63,6 @@ const server = http.createServer((request, response) => {
   });
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Static test server running on http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`Static server running on http://${host}:${port}`);
 });
