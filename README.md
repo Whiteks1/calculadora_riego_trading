@@ -53,6 +53,23 @@ Roadmap corto del repo:
 - Casos de prueba compartidos entre JS y C++ para metricas y trade plans.
 - Interfaz preparada para crecer sin rehacer la base.
 
+## Arranque rapido
+
+```bash
+npm ci
+npm run dev
+```
+
+Luego abre:
+
+- `http://127.0.0.1:4173`
+
+Para correr la bateria principal de comprobaciones:
+
+```bash
+npm test
+```
+
 ## Archivos
 
 - `index.html`: estructura de la aplicacion.
@@ -64,6 +81,7 @@ Roadmap corto del repo:
 - `web/backtest-ui.js`: mini backtester visual y render de tablas/graficos.
 - `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
 - `package.json`: entrypoint CLI y scripts de test ligeros.
+- `package-lock.json`: lockfile de dependencias para reproducibilidad local y CI.
 - `playwright.config.js`: configuracion de pruebas UI/browser.
 - `scripts/serve-static.js`: servidor estatico minimo para pruebas de navegador.
 - `scripts/clean-local-artifacts.js`: limpieza local opcional de artefactos ignorados.
@@ -89,7 +107,7 @@ Roadmap corto del repo:
 
 ## Como abrirlo
 
-1. Abre `index.html` en tu navegador.
+1. Ejecuta `npm run dev` o abre `index.html` en tu navegador.
 2. Completa los datos de la operacion.
 3. Pulsa `Calcular riesgo`.
 4. Si quieres guardarla, pulsa `Guardar escenario`.
@@ -143,9 +161,15 @@ cmake --build cpp/build --config Release
 
 ```bash
 npm ci
-node tests/run_js_tests.js
-node tests/run_cli_tests.js
-node tests/run_contract_fixture_tests.js
+npm test
+```
+
+Si quieres correr solo una parte:
+
+```bash
+npm run test:js
+npm run test:cli
+npm run test:contract-fixtures
 npm run test:ui
 ```
 
