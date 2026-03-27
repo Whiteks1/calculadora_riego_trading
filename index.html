@@ -323,7 +323,7 @@
 
           <label class="field">
             <span>Slippage (%)</span>
-            <input id="slippagePercent" name="slippagePercent" type="number" min="0" step="0.01" placeholder="0.05">
+            <input id="backtestSlippagePercent" name="slippagePercent" type="number" min="0" step="0.01" placeholder="0.05">
           </label>
         </div>
 
@@ -444,6 +444,9 @@
   </main>
 
   <script src="risk-core.js"></script>
+  <script src="web/shared.js"></script>
+  <script src="web/risk-ui.js"></script>
+  <script src="web/backtest-ui.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
