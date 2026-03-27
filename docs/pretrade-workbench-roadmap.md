@@ -18,7 +18,7 @@ It is not the owner of execution, approval, or policy.
 
 ## Repository Role
 
-`calculadora_riego_trading` is the upstream planning surface.
+`calculadora_riesgo_trading` is the upstream planning surface.
 
 `QuantLab` is the downstream consumer that may later:
 
