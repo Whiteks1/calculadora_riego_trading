@@ -15,8 +15,12 @@ Options:
   --input-file <path>         Read trade input from JSON file.
   --json-out <path>           Write canonical trade plan JSON to file.
   --csv-out <path>            Write canonical trade plan CSV to file.
+  --quantlab-handoff-out <path>
+                              Write a bounded QuantLab handoff JSON artifact.
+  --stdout-format <format>    One of: trade-plan, quantlab-handoff.
   --generated-at <iso>        Override generatedAt for deterministic output.
   --plan-id <id>              Override planId.
+  --handoff-id <id>           Override handoffId for QuantLab handoff export.
   --planner <name>            Override planner name.
   --capital <value>
   --risk-percent <value>
@@ -25,6 +29,11 @@ Options:
   --exit-price <value>
   --fee-percent <value>
   --slippage-percent <value>
+  --symbol <value>
+  --venue <value>
+  --side <value>              buy, sell, long, short.
+  --account-id <value>
+  --strategy-id <value>
   --strategy-name <text>
   --trade-notes <text>
   --help                      Show this message.
@@ -80,6 +89,11 @@ function readInputPayload(args) {
     exit_price: args["exit-price"],
     fee_percent: args["fee-percent"],
     slippage_percent: args["slippage-percent"],
+    symbol: args.symbol,
+    venue: args.venue,
+    side: args.side,
+    account_id: args["account-id"],
+    strategy_id: args["strategy-id"],
     strategy_name: args["strategy-name"],
     trade_notes: args["trade-notes"],
   };
@@ -94,6 +108,11 @@ function normalizeInput(raw) {
     exitPrice: raw.exitPrice ?? raw.exit_price,
     feePercent: raw.feePercent ?? raw.fee_percent ?? 0,
     slippagePercent: raw.slippagePercent ?? raw.slippage_percent ?? 0,
+    symbol: raw.symbol,
+    venue: raw.venue,
+    side: raw.side,
+    accountId: raw.accountId ?? raw.account_id,
+    strategyId: raw.strategyId ?? raw.strategy_id,
     strategyName: raw.strategyName ?? raw.strategy_name ?? "",
     tradeNotes: raw.tradeNotes ?? raw.trade_notes ?? raw.notes ?? "",
   };
@@ -104,7 +123,7 @@ function ensureParentDir(filePath) {
   fs.mkdirSync(parent, { recursive: true });
 }
 
-function writeOutputs(plan, args) {
+function writeOutputs(plan, handoff, args) {
   if (args["json-out"]) {
     const jsonPath = path.resolve(process.cwd(), args["json-out"]);
     ensureParentDir(jsonPath);
@@ -115,6 +134,12 @@ function writeOutputs(plan, args) {
     const csvPath = path.resolve(process.cwd(), args["csv-out"]);
     ensureParentDir(csvPath);
     fs.writeFileSync(csvPath, RiskCore.serializeTradePlanCsv(plan), "utf8");
+  }
+
+  if (args["quantlab-handoff-out"]) {
+    const handoffPath = path.resolve(process.cwd(), args["quantlab-handoff-out"]);
+    ensureParentDir(handoffPath);
+    fs.writeFileSync(handoffPath, RiskCore.serializeQuantLabHandoffJson(handoff), "utf8");
   }
 }
 
@@ -133,9 +158,25 @@ function main() {
       planId: args["plan-id"],
       planner: args.planner,
     });
+    const handoff = RiskCore.createQuantLabHandoff(plan, {
+      generatedAt: args["generated-at"],
+      handoffId: args["handoff-id"],
+    });
 
-    writeOutputs(plan, args);
-    process.stdout.write(RiskCore.serializeTradePlanJson(plan));
+    writeOutputs(plan, handoff, args);
+
+    const stdoutFormat = args["stdout-format"] || "trade-plan";
+    if (stdoutFormat === "trade-plan") {
+      process.stdout.write(RiskCore.serializeTradePlanJson(plan));
+      return;
+    }
+
+    if (stdoutFormat === "quantlab-handoff") {
+      process.stdout.write(RiskCore.serializeQuantLabHandoffJson(handoff));
+      return;
+    }
+
+    throw new Error(`Unsupported stdout format: ${stdoutFormat}`);
   } catch (error) {
     process.stderr.write(`trade-plan CLI error: ${error.message}\n`);
     process.exitCode = 1;
