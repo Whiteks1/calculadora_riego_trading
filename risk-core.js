@@ -8,6 +8,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, () => {
   const CONTRACT_TYPE = "calculadora_riesgo.trade_plan";
   const CONTRACT_VERSION = "1.0";
+  const QUANTLAB_HANDOFF_CONTRACT_TYPE = "calculadora_riesgo.quantlab_handoff";
+  const QUANTLAB_HANDOFF_CONTRACT_VERSION = "1.0";
   const DEFAULT_PLANNER = "calculadora_riego_trading";
 
   function normalizeNumber(value, defaultValue = 0) {
@@ -17,6 +19,27 @@
 
   function normalizeText(value, defaultValue = "") {
     return typeof value === "string" ? value.trim() : defaultValue;
+  }
+
+  function normalizeOptionalText(value) {
+    const normalized = normalizeText(value);
+    return normalized || null;
+  }
+
+  function normalizeContextSide(value) {
+    const normalized = normalizeText(value).toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+
+    const aliases = {
+      buy: "buy",
+      long: "buy",
+      sell: "sell",
+      short: "sell",
+    };
+
+    return aliases[normalized] || normalized;
   }
 
   function normalizeTradeInput(values) {
@@ -30,6 +53,11 @@
       slippagePercent: normalizeNumber(values.slippagePercent, 0),
       strategyName: normalizeText(values.strategyName),
       tradeNotes: normalizeText(values.tradeNotes),
+      symbol: normalizeOptionalText(values.symbol),
+      venue: normalizeOptionalText(values.venue),
+      side: normalizeContextSide(values.side),
+      accountId: normalizeOptionalText(values.accountId),
+      strategyId: normalizeOptionalText(values.strategyId),
     };
   }
 
@@ -75,6 +103,10 @@
 
     if (normalizedValues.entryPrice === normalizedValues.exitPrice) {
       return "El precio de entrada y el precio objetivo no pueden ser iguales.";
+    }
+
+    if (normalizedValues.side && !["buy", "sell"].includes(normalizedValues.side)) {
+      return "El side debe ser buy, sell, long o short.";
     }
 
     const tradeType = resolveTradeType(normalizedValues.entryPrice, normalizedValues.stopLoss);
@@ -192,6 +224,13 @@
         strategyName: normalizedValues.strategyName,
         tradeNotes: normalizedValues.tradeNotes,
       },
+      context: {
+        symbol: normalizedValues.symbol,
+        venue: normalizedValues.venue,
+        side: normalizedValues.side,
+        accountId: normalizedValues.accountId,
+        strategyId: normalizedValues.strategyId,
+      },
       metrics: {
         tradeType: metrics.tradeType,
         riskAmount: metrics.riskAmount,
@@ -221,8 +260,63 @@
     };
   }
 
+  function buildQuantLabHandoffHints(tradePlan) {
+    const missingFields = [
+      ["symbol", tradePlan.context?.symbol],
+      ["venue", tradePlan.context?.venue],
+      ["side", tradePlan.context?.side],
+    ]
+      .filter(([, value]) => !value)
+      .map(([field]) => field);
+
+    return {
+      readyForDraftExecutionIntent: missingFields.length === 0,
+      missingFields,
+      boundaryNote:
+        "This handoff artifact is for bounded QuantLab ingestion only. It does not grant execution authority.",
+    };
+  }
+
+  function createQuantLabHandoff(tradePlan, options = {}) {
+    const generatedAt = typeof options.generatedAt === "string" && options.generatedAt
+      ? options.generatedAt
+      : tradePlan.generatedAt;
+    const handoffId = typeof options.handoffId === "string" && options.handoffId
+      ? options.handoffId
+      : `${tradePlan.planId}-handoff`;
+    const hints = buildQuantLabHandoffHints(tradePlan);
+
+    return {
+      machineContract: {
+        contractType: QUANTLAB_HANDOFF_CONTRACT_TYPE,
+        contractVersion: QUANTLAB_HANDOFF_CONTRACT_VERSION,
+      },
+      generatedAt,
+      handoffId,
+      source: {
+        planner: tradePlan.planner,
+        tradePlanContractType: tradePlan.contractType,
+        tradePlanContractVersion: tradePlan.contractVersion,
+        tradePlanId: tradePlan.planId,
+      },
+      pretradeContext: {
+        symbol: tradePlan.context?.symbol ?? null,
+        venue: tradePlan.context?.venue ?? null,
+        side: tradePlan.context?.side ?? null,
+        accountId: tradePlan.context?.accountId ?? null,
+        strategyId: tradePlan.context?.strategyId ?? null,
+      },
+      quantlabHints: hints,
+      tradePlan,
+    };
+  }
+
   function serializeTradePlanJson(tradePlan) {
     return `${JSON.stringify(tradePlan, null, 2)}\n`;
+  }
+
+  function serializeQuantLabHandoffJson(handoff) {
+    return `${JSON.stringify(handoff, null, 2)}\n`;
   }
 
   function tradePlanCsvHeaders() {
@@ -321,13 +415,18 @@
   return {
     CONTRACT_TYPE,
     CONTRACT_VERSION,
+    QUANTLAB_HANDOFF_CONTRACT_TYPE,
+    QUANTLAB_HANDOFF_CONTRACT_VERSION,
     normalizeTradeInput,
     resolveTradeType,
     validateTradeValues,
     calculateRiskMetrics,
     calculateTradeCosts,
     createTradePlan,
+    buildQuantLabHandoffHints,
+    createQuantLabHandoff,
     serializeTradePlanJson,
+    serializeQuantLabHandoffJson,
     tradePlanCsvHeaders,
     tradePlanToCsvRow,
     serializeTradePlanCsv,

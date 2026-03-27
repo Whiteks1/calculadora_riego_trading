@@ -1,0 +1,16 @@
+{
+  "capital": 1000,
+  "risk_percent": 1,
+  "entry_price": 2000,
+  "stop_loss": 1950,
+  "exit_price": 2100,
+  "fee_percent": 0.1,
+  "slippage_percent": 0.05,
+  "symbol": "ETH-USD",
+  "venue": "hyperliquid",
+  "side": "buy",
+  "account_id": "acct_demo_001",
+  "strategy_id": "breakout_v1",
+  "strategy_name": "ETH breakout",
+  "trade_notes": "Example bounded handoff request for QuantLab."
+}

@@ -36,6 +36,8 @@ El repositorio tambien empieza a actuar como un **pre-trade risk workbench** reu
 - `app.js`: validacion y calculos.
 - `cli/trade-plan.js`: CLI headless para generar trade plans deterministas sin navegador.
 - `package.json`: entrypoint CLI y scripts de test ligeros.
+- `docs/quantlab-handoff-contract.md`: boundary y contrato de handoff hacia QuantLab.
+- `examples/quantlab_handoff_request.json`: ejemplo de request para el path headless.
 - `.github/workflows/deploy-pages.yml`: despliegue automatico a GitHub Pages.
 - `cpp/main.cpp`: version consola del motor.
 - `cpp/risk_engine.cpp`: motor compartido de calculo en C++.
@@ -143,3 +145,32 @@ La CLI:
 - imprime el trade plan JSON canónico por `stdout`
 - puede escribir JSON y CSV de forma determinista
 - devuelve código distinto de cero si el setup es inválido
+
+## Handoff hacia QuantLab
+
+La integración prevista con QuantLab es deliberadamente acotada:
+
+- esta app propone
+- QuantLab valida
+- QuantLab decide
+- QuantLab ejecuta
+
+Eso significa que esta herramienta no es dueña de:
+
+- `ExecutionPolicy`
+- `ExecutionIntent`
+- approval o submit
+- broker adapters
+
+El contrato documentado está en:
+
+- `docs/quantlab-handoff-contract.md`
+
+Export opcional del handoff:
+
+```bash
+node cli/trade-plan.js \
+  --input-file examples/quantlab_handoff_request.json \
+  --stdout-format quantlab-handoff \
+  --quantlab-handoff-out outputs/quantlab_handoff.json
+```

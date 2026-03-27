@@ -14,6 +14,7 @@ function run() {
   const inputPath = path.join(tempRoot, "request.json");
   const jsonOut = path.join(tempRoot, "artifacts", "trade_plan.json");
   const csvOut = path.join(tempRoot, "artifacts", "trade_plan.csv");
+  const handoffOut = path.join(tempRoot, "artifacts", "quantlab_handoff.json");
 
   fs.writeFileSync(
     inputPath,
@@ -26,6 +27,11 @@ function run() {
         exit_price: 2100,
         fee_percent: 0.1,
         slippage_percent: 0.05,
+        symbol: "ETH-USD",
+        venue: "hyperliquid",
+        side: "buy",
+        account_id: "acct_demo_001",
+        strategy_id: "breakout_v1",
         strategy_name: "CLI test",
         trade_notes: "Deterministic headless check",
       },
@@ -51,20 +57,33 @@ function run() {
       jsonOut,
       "--csv-out",
       csvOut,
+      "--quantlab-handoff-out",
+      handoffOut,
+      "--stdout-format",
+      "quantlab-handoff",
     ],
     { encoding: "utf8" },
   );
 
-  const outputPlan = JSON.parse(stdout);
+  const outputHandoff = JSON.parse(stdout);
   const savedPlan = readJson(jsonOut);
+  const savedHandoff = readJson(handoffOut);
   const savedCsv = fs.readFileSync(csvOut, "utf8");
 
-  if (outputPlan.planId !== "cli-case-001") {
-    throw new Error(`planId inesperado: ${outputPlan.planId}`);
+  if (outputHandoff.handoffId !== "cli-case-001-handoff") {
+    throw new Error(`handoffId inesperado: ${outputHandoff.handoffId}`);
   }
 
   if (savedPlan.contractType !== "calculadora_riesgo.trade_plan") {
     throw new Error(`contractType inesperado: ${savedPlan.contractType}`);
+  }
+
+  if (savedHandoff.machineContract.contractType !== "calculadora_riesgo.quantlab_handoff") {
+    throw new Error(`handoff contractType inesperado: ${savedHandoff.machineContract.contractType}`);
+  }
+
+  if (savedHandoff.quantlabHints.readyForDraftExecutionIntent !== true) {
+    throw new Error("El handoff debería quedar listo con symbol/venue/side.");
   }
 
   if (!savedCsv.startsWith("contract_type,contract_version,planner")) {
