@@ -2,6 +2,8 @@
 
 Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y logica aplicada a trading.
 
+Estado actual: `v1.0.0` finalizada como primera version estable y lista para portfolio.
+
 Repo publico de portfolio:
 - descripcion enfocada a pre-trade risk workbench
 - website apuntando al deploy en GitHub Pages
@@ -37,6 +39,8 @@ Regla base:
 Roadmap corto del repo:
 
 - `docs/pretrade-workbench-roadmap.md`
+- `docs/portfolio-final-checklist.md`
+- `CHANGELOG.md`
 
 ## Incluye
 
