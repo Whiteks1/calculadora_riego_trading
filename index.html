@@ -15,28 +15,28 @@
       <p class="eyebrow">Proyecto base para trading</p>
       <h1>Calculadora web de riesgo</h1>
       <p class="hero-copy">
-        Calcula cuánto arriesgas por operación, el tamaño estimado de la posición y la relación
-        riesgo/beneficio antes de entrar al mercado.
+        Gestiona el riesgo de una operación, guarda un histórico con contexto útil y empieza a
+        probar una estrategia simple con un mini backtester visual sobre la misma base.
       </p>
 
       <div class="hero-grid">
         <article class="info-card">
-          <h2>Incluye ahora</h2>
+          <h2>Base práctica</h2>
           <ul>
-            <li>Validación clara de inputs</li>
-            <li>Cálculo de riesgo monetario</li>
-            <li>Tamaño de posición estimado</li>
-            <li>Escenario de beneficio y ratio R</li>
+            <li>Validación y coherencia del setup</li>
+            <li>Escenarios con estrategia y notas</li>
+            <li>Histórico persistente con filtros</li>
+            <li>Exportación CSV desde web y C++</li>
           </ul>
         </article>
 
         <article class="info-card accent">
-          <h2>Escalable después</h2>
+          <h2>Siguiente nivel</h2>
           <ul>
-            <li>Comparar escenarios</li>
-            <li>Guardar operaciones</li>
-            <li>Exportar resultados</li>
-            <li>Migrar el motor a C++</li>
+            <li>Backtester visual con medias móviles</li>
+            <li>Resumen de señales y operaciones</li>
+            <li>Base para simulación más seria</li>
+            <li>Puente natural hacia C++ y MQL5</li>
           </ul>
         </article>
       </div>
@@ -45,7 +45,7 @@
     <section class="calculator-panel">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">Versión 1</p>
+          <p class="eyebrow">Calculadora</p>
           <h2>Datos de la operación</h2>
         </div>
         <button type="button" class="ghost-button" id="fillExample">Cargar ejemplo</button>
@@ -73,15 +73,25 @@
             <input id="stopLoss" name="stopLoss" type="number" min="0" step="0.0001" placeholder="1.1980">
           </label>
 
-          <label class="field field-wide">
+          <label class="field">
             <span>Precio objetivo / salida</span>
             <input id="exitPrice" name="exitPrice" type="number" min="0" step="0.0001" placeholder="1.2190">
+          </label>
+
+          <label class="field">
+            <span>Estrategia</span>
+            <input id="strategyName" name="strategyName" type="text" placeholder="Breakout diario">
+          </label>
+
+          <label class="field field-wide">
+            <span>Notas</span>
+            <textarea id="tradeNotes" name="tradeNotes" rows="3" placeholder="Contexto, motivo de entrada, sesión o cualquier observación útil."></textarea>
           </label>
         </div>
 
         <div class="actions">
           <button type="submit" class="primary-button">Calcular riesgo</button>
-          <button type="button" class="secondary-button" id="saveScenario">Añadir escenario</button>
+          <button type="button" class="secondary-button" id="saveScenario">Guardar escenario</button>
           <button type="reset" class="secondary-button">Limpiar</button>
         </div>
 
@@ -151,7 +161,7 @@
       <div class="results-head">
         <div>
           <p class="eyebrow">Comparador</p>
-          <h2>Escenarios guardados</h2>
+          <h2>Escenarios activos</h2>
         </div>
         <div class="scenario-toolbar">
           <button type="button" class="ghost-button" id="exportScenarios">Exportar CSV</button>
@@ -165,6 +175,8 @@
           <thead>
             <tr>
               <th>#</th>
+              <th>Fecha</th>
+              <th>Estrategia</th>
               <th>Tipo</th>
               <th>Capital</th>
               <th>Riesgo</th>
@@ -179,10 +191,215 @@
           </thead>
           <tbody id="scenarioTableBody">
             <tr class="empty-row">
-              <td colspan="11">Todavía no has guardado escenarios. Calcula una operación y pulsa "Añadir escenario".</td>
+              <td colspan="13">Todavía no has guardado escenarios. Calcula una operación y pulsa "Guardar escenario".</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="results-panel history-panel" aria-live="polite">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Histórico</p>
+          <h2>Operaciones guardadas</h2>
+        </div>
+        <div class="scenario-toolbar">
+          <button type="button" class="ghost-button" id="clearHistory">Vaciar histórico</button>
+          <span class="trade-badge neutral" id="historyCountBadge">0 registros</span>
+        </div>
+      </div>
+
+      <div class="filter-grid">
+        <label class="field">
+          <span>Búsqueda</span>
+          <input id="historySearch" type="search" placeholder="Buscar por estrategia, nota o tipo">
+        </label>
+
+        <label class="field">
+          <span>Tipo</span>
+          <select id="historyTypeFilter">
+            <option value="ALL">Todos</option>
+            <option value="LONG">LONG</option>
+            <option value="SHORT">SHORT</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Estrategia</span>
+          <select id="historyStrategyFilter">
+            <option value="ALL">Todas</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="table-shell">
+        <table class="scenario-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Estrategia</th>
+              <th>Notas</th>
+              <th>Tipo</th>
+              <th>Capital</th>
+              <th>Riesgo</th>
+              <th>Ratio R</th>
+              <th>Beneficio</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr class="empty-row">
+              <td colspan="8">Aún no hay operaciones en el histórico.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="results-panel backtester-panel" aria-live="polite">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Mini Backtester</p>
+          <h2>Backtester visual con medias móviles</h2>
+        </div>
+        <button type="button" class="ghost-button" id="loadBacktestExample">Cargar demo</button>
+      </div>
+
+      <form id="backtestForm" novalidate>
+        <div class="form-grid">
+          <label class="field field-wide">
+            <span>Serie de precios</span>
+            <textarea id="priceSeries" name="priceSeries" rows="6" placeholder="Pega precios separados por comas, espacios o saltos de línea. Ejemplo: 100, 102, 101, 104"></textarea>
+          </label>
+
+          <label class="field">
+            <span>Media corta</span>
+            <input id="shortPeriod" name="shortPeriod" type="number" min="1" step="1" placeholder="3">
+          </label>
+
+          <label class="field">
+            <span>Media larga</span>
+            <input id="longPeriod" name="longPeriod" type="number" min="2" step="1" placeholder="6">
+          </label>
+
+          <label class="field">
+            <span>Capital inicial</span>
+            <input id="initialCapital" name="initialCapital" type="number" min="0" step="0.01" placeholder="10000">
+          </label>
+
+          <label class="field">
+            <span>Comisión (%)</span>
+            <input id="commissionPercent" name="commissionPercent" type="number" min="0" step="0.01" placeholder="0.10">
+          </label>
+
+          <label class="field">
+            <span>Slippage (%)</span>
+            <input id="slippagePercent" name="slippagePercent" type="number" min="0" step="0.01" placeholder="0.05">
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="primary-button">Ejecutar backtest</button>
+        </div>
+
+        <p id="backtestMessage" class="form-message" aria-live="polite"></p>
+      </form>
+
+      <div class="stats-grid backtest-stats">
+        <article class="stat-card">
+          <p>Capital final</p>
+          <strong id="backtestFinalCapital">--</strong>
+          <span>Valor tras aplicar la estrategia</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Retorno total</p>
+          <strong id="backtestReturn">--</strong>
+          <span>Variación sobre el capital inicial</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Operaciones</p>
+          <strong id="backtestTrades">--</strong>
+          <span>Total de trades cerrados</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Win rate</p>
+          <strong id="backtestWinRate">--</strong>
+          <span>Porcentaje de operaciones ganadoras</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Max drawdown</p>
+          <strong id="backtestDrawdown">--</strong>
+          <span>Caída máxima de equity</span>
+        </article>
+
+        <article class="stat-card">
+          <p>Última señal</p>
+          <strong id="backtestLastSignal">--</strong>
+          <span>Estado final del modelo</span>
+        </article>
+      </div>
+
+      <div class="chart-shell">
+        <div class="chart-legend">
+          <span class="legend-item">
+            <span class="legend-dot price-line"></span>
+            Precio
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot short-line"></span>
+            Media corta
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot long-line"></span>
+            Media larga
+          </span>
+        </div>
+        <svg id="backtestChart" class="backtest-chart" viewBox="0 0 800 260" role="img" aria-label="Gráfico del backtest"></svg>
+      </div>
+
+      <div class="backtest-grid">
+        <div class="table-shell">
+          <table class="scenario-table">
+            <thead>
+              <tr>
+                <th>Barra</th>
+                <th>Precio</th>
+                <th>MA corta</th>
+                <th>MA larga</th>
+                <th>Señal</th>
+              </tr>
+            </thead>
+            <tbody id="backtestSignalBody">
+              <tr class="empty-row">
+                <td colspan="5">Ejecuta un backtest para ver las señales generadas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-shell">
+          <table class="scenario-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Motivo</th>
+                <th>Beneficio</th>
+                <th>Rentab.</th>
+              </tr>
+            </thead>
+            <tbody id="backtestTradesBody">
+              <tr class="empty-row">
+                <td colspan="6">Todavía no hay operaciones del backtest.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   </main>

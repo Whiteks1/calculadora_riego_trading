@@ -172,7 +172,26 @@ h2 {
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.field input:focus {
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  font: inherit;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
   outline: none;
   border-color: rgba(10, 122, 103, 0.45);
   box-shadow: 0 0 0 4px rgba(10, 122, 103, 0.12);
@@ -246,6 +265,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .trade-badge {
@@ -330,6 +350,26 @@ button:disabled {
   background: var(--surface-strong);
 }
 
+.filter-grid,
+.backtest-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.filter-grid {
+  margin-bottom: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.backtest-stats {
+  margin-top: 24px;
+}
+
+.backtest-grid {
+  margin-top: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
 .scenario-table {
   width: 100%;
   border-collapse: collapse;
@@ -395,6 +435,84 @@ button:disabled {
   background: rgba(217, 72, 95, 0.08);
   border: 1px solid rgba(217, 72, 95, 0.18);
   color: #96293c;
+}
+
+.chart-shell {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-strong);
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.legend-dot.price-line {
+  background: #1d2433;
+}
+
+.legend-dot.short-line {
+  background: #f28b50;
+}
+
+.legend-dot.long-line {
+  background: #0a7a67;
+}
+
+.backtest-chart {
+  width: 100%;
+  min-height: 260px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(10, 122, 103, 0.03), rgba(255, 255, 255, 0.66));
+}
+
+.chart-grid-line {
+  stroke: rgba(29, 36, 51, 0.08);
+  stroke-width: 1;
+}
+
+.chart-series {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart-series.price {
+  stroke: #1d2433;
+}
+
+.chart-series.short {
+  stroke: #f28b50;
+}
+
+.chart-series.long {
+  stroke: #0a7a67;
+}
+
+.chart-empty {
+  fill: var(--muted);
+  font-size: 20px;
+  font-family: "DM Sans", sans-serif;
 }
 
 @media (max-width: 760px) {

@@ -4,3 +4,7 @@ Thumbs.db
 cpp/build/
 trading_risk_calculator
 trading_risk_calculator.exe
+trading_risk_calculator_*.exe
+.vscode/
+temp-input*.txt
+escenarios_cpp.csv

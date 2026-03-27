@@ -9,9 +9,12 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 - Beneficio potencial y ratio riesgo/beneficio.
 - Tabla para comparar escenarios guardados.
 - Persistencia de escenarios con `localStorage`.
+- Historico con fecha, estrategia y notas.
+- Filtros y busqueda sobre operaciones guardadas.
 - Exportacion CSV de escenarios guardados.
+- Mini backtester visual con medias moviles, comision y slippage.
 - Workflow de GitHub Pages para desplegar la web automatica desde `main`.
-- Version en C++ consola del motor de calculo.
+- Version en C++ consola del motor de calculo con exportacion CSV.
 - Interfaz preparada para crecer sin rehacer la base.
 
 ## Archivos
@@ -28,9 +31,10 @@ Proyecto base en HTML, CSS y JavaScript para practicar interfaz, validacion y lo
 1. Abre `index.html` en tu navegador.
 2. Completa los datos de la operacion.
 3. Pulsa `Calcular riesgo`.
-4. Si quieres compararla con otras, pulsa `Anadir escenario`.
-5. Los escenarios guardados se restauran al recargar la pagina.
-6. Puedes pulsar `Exportar CSV` para descargar la tabla comparativa.
+4. Si quieres guardarla, pulsa `Guardar escenario`.
+5. Los escenarios activos se pueden exportar a CSV y limpiar sin perder el historico.
+6. El historico conserva fecha, estrategia y notas, y se puede filtrar o buscar.
+7. En el mini backtester puedes pegar precios, elegir parametros y ver señales, operaciones y metricas.
 
 ## GitHub Pages
 
@@ -44,7 +48,7 @@ Si es la primera vez que activas Pages en el repositorio, revisa en GitHub que l
 
 ## Version C++ consola
 
-La version de consola permite calcular varias operaciones seguidas y al final muestra un resumen de escenarios.
+La version de consola permite calcular varias operaciones seguidas, validar mejor el setup y exportar automaticamente el resumen final a CSV.
 
 ### Compilar con g++
 
@@ -58,6 +62,8 @@ g++ -std=c++17 -O2 -o trading_risk_calculator cpp/main.cpp
 ./trading_risk_calculator
 ```
 
+Al terminar, la app genera `escenarios_cpp.csv` con los escenarios calculados.
+
 ### Compilar con CMake
 
 ```bash
@@ -68,6 +74,6 @@ cmake --build cpp/build --config Release
 ## Siguientes pasos recomendados
 
 1. Compartir la logica entre la web y C++ con pruebas.
-2. Anadir historico con fecha, notas y filtro por estrategia.
-3. Guardar historico de operaciones con fecha y notas.
+2. Anadir comisiones, slippage o leverage tambien a la calculadora principal.
+3. Exportar tambien el historico completo desde la web.
 4. Evolucionar el motor C++ hacia backtesting y simulacion.

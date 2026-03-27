@@ -1,4 +1,7 @@
 #include <cmath>
+#include <chrono>
+#include <ctime>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -13,6 +16,8 @@ struct TradeInput {
   double entryPrice {};
   double stopLoss {};
   double exitPrice {};
+  std::string strategy;
+  std::string notes;
 };
 
 struct TradeMetrics {
@@ -29,6 +34,7 @@ struct TradeMetrics {
 };
 
 struct ScenarioRecord {
+  std::string timestamp;
   TradeInput input;
   TradeMetrics metrics;
 };
@@ -46,6 +52,25 @@ double readPositiveNumber(const std::string& label) {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
+}
+
+double readBoundedRiskPercent(const std::string& label) {
+  while (true) {
+    const double value = readPositiveNumber(label);
+
+    if (value <= 100.0) {
+      return value;
+    }
+
+    std::cout << "El porcentaje de riesgo debe estar entre 0 y 100.\n";
+  }
+}
+
+std::string readTextLine(const std::string& label) {
+  std::cout << label;
+  std::string value;
+  std::getline(std::cin, value);
+  return value;
 }
 
 std::string detectTradeType(double entryPrice, double stopLoss) {
@@ -71,6 +96,16 @@ void validateTradeInput(const TradeInput& input) {
 
   if (input.entryPrice == input.exitPrice) {
     throw std::invalid_argument("La entrada y el objetivo no pueden ser iguales.");
+  }
+
+  const std::string tradeType = detectTradeType(input.entryPrice, input.stopLoss);
+
+  if (tradeType == "LONG" && input.exitPrice <= input.entryPrice) {
+    throw std::invalid_argument("En una operacion LONG el objetivo debe quedar por encima de la entrada.");
+  }
+
+  if (tradeType == "SHORT" && input.exitPrice >= input.entryPrice) {
+    throw std::invalid_argument("En una operacion SHORT el objetivo debe quedar por debajo de la entrada.");
   }
 }
 
@@ -99,20 +134,47 @@ std::string formatNumber(double value, int precision = 2) {
   return stream.str();
 }
 
+std::string currentTimestamp() {
+  const auto now = std::chrono::system_clock::now();
+  const std::time_t nowTime = std::chrono::system_clock::to_time_t(now);
+  std::tm localTime {};
+#ifdef _WIN32
+  localtime_s(&localTime, &nowTime);
+#else
+  localtime_r(&nowTime, &localTime);
+#endif
+  std::ostringstream stream;
+  stream << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S");
+  return stream.str();
+}
+
 TradeInput readTradeInput() {
   TradeInput input;
   input.capital = readPositiveNumber("Capital disponible: ");
-  input.riskPercent = readPositiveNumber("Riesgo por operacion (%): ");
+  input.riskPercent = readBoundedRiskPercent("Riesgo por operacion (%): ");
   input.entryPrice = readPositiveNumber("Precio de entrada: ");
   input.stopLoss = readPositiveNumber("Stop loss: ");
   input.exitPrice = readPositiveNumber("Precio objetivo / salida: ");
+
+  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  input.strategy = readTextLine("Estrategia (opcional): ");
+  input.notes = readTextLine("Notas (opcional): ");
+
+  if (input.strategy.empty()) {
+    input.strategy = "Sin estrategia";
+  }
+
   return input;
 }
 
-void printScenarioSummary(const TradeInput& input, const TradeMetrics& metrics) {
+void printScenarioSummary(const ScenarioRecord& scenario) {
+  const TradeMetrics& metrics = scenario.metrics;
+
   std::cout << "\nResumen de la operacion\n";
+  std::cout << "Fecha: " << scenario.timestamp << '\n';
+  std::cout << "Estrategia: " << scenario.input.strategy << '\n';
   std::cout << "Tipo: " << metrics.tradeType << '\n';
-  std::cout << "Capital: EUR " << formatNumber(input.capital) << '\n';
+  std::cout << "Capital: EUR " << formatNumber(scenario.input.capital) << '\n';
   std::cout << "Riesgo en dinero: EUR " << formatNumber(metrics.riskAmount) << '\n';
   std::cout << "Tamano estimado: " << formatNumber(metrics.positionSize) << " unidades\n";
   std::cout << "Perdida potencial: EUR " << formatNumber(metrics.potentialLoss) << '\n';
@@ -123,16 +185,17 @@ void printScenarioSummary(const TradeInput& input, const TradeMetrics& metrics) 
 
   if (metrics.expectedTargetDirection) {
     std::cout << "El objetivo es coherente con la direccion de la operacion.\n";
-  } else {
-    std::cout << "El objetivo no acompana la direccion del setup.\n";
   }
 }
 
-bool askToContinue() {
+bool askYesNo(const std::string& label) {
   while (true) {
-    std::cout << "\nQuieres calcular otra operacion? (s/n): ";
+    std::cout << label;
     std::string answer;
-    std::cin >> answer;
+    if (!(std::cin >> answer)) {
+      throw std::runtime_error("No se pudo leer la respuesta.");
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     if (answer == "s" || answer == "S") {
       return true;
@@ -146,6 +209,55 @@ bool askToContinue() {
   }
 }
 
+std::string escapeCsv(const std::string& value) {
+  if (value.find_first_of(",\"\n") == std::string::npos) {
+    return value;
+  }
+
+  std::string escaped = "\"";
+  for (char character : value) {
+    if (character == '"') {
+      escaped += "\"\"";
+    } else {
+      escaped += character;
+    }
+  }
+  escaped += "\"";
+  return escaped;
+}
+
+void exportScenariosToCsv(const std::vector<ScenarioRecord>& scenarios, const std::string& filename) {
+  std::ofstream output(filename);
+
+  if (!output) {
+    throw std::runtime_error("No se pudo crear el archivo CSV.");
+  }
+
+  output << "fecha,estrategia,notas,tipo,capital,riesgo_percent,entrada,stop_loss,objetivo,riesgo_dinero,"
+            "distancia_stop,distancia_objetivo,tamano_posicion,perdida_potencial,beneficio_potencial,ratio_r,"
+            "valor_nocional\n";
+
+  for (const ScenarioRecord& scenario : scenarios) {
+    output << escapeCsv(scenario.timestamp) << ','
+           << escapeCsv(scenario.input.strategy) << ','
+           << escapeCsv(scenario.input.notes) << ','
+           << escapeCsv(scenario.metrics.tradeType) << ','
+           << scenario.input.capital << ','
+           << scenario.input.riskPercent << ','
+           << scenario.input.entryPrice << ','
+           << scenario.input.stopLoss << ','
+           << scenario.input.exitPrice << ','
+           << scenario.metrics.riskAmount << ','
+           << scenario.metrics.stopDistance << ','
+           << scenario.metrics.targetDistance << ','
+           << scenario.metrics.positionSize << ','
+           << scenario.metrics.potentialLoss << ','
+           << scenario.metrics.potentialProfit << ','
+           << scenario.metrics.rrRatio << ','
+           << scenario.metrics.notionalValue << '\n';
+  }
+}
+
 void printFinalTable(const std::vector<ScenarioRecord>& scenarios) {
   if (scenarios.empty()) {
     return;
@@ -153,6 +265,8 @@ void printFinalTable(const std::vector<ScenarioRecord>& scenarios) {
 
   std::cout << "\nResumen final de escenarios\n";
   std::cout << std::left << std::setw(4) << "#"
+            << std::setw(20) << "Fecha"
+            << std::setw(18) << "Estrategia"
             << std::setw(8) << "Tipo"
             << std::setw(14) << "Riesgo EUR"
             << std::setw(16) << "Posicion"
@@ -160,9 +274,11 @@ void printFinalTable(const std::vector<ScenarioRecord>& scenarios) {
             << std::setw(16) << "Beneficio"
             << '\n';
 
-  for (std::size_t i = 0; i < scenarios.size(); ++i) {
-    const ScenarioRecord& scenario = scenarios[i];
-    std::cout << std::left << std::setw(4) << (i + 1)
+  for (std::size_t index = 0; index < scenarios.size(); ++index) {
+    const ScenarioRecord& scenario = scenarios[index];
+    std::cout << std::left << std::setw(4) << (index + 1)
+              << std::setw(20) << scenario.timestamp.substr(0, 16)
+              << std::setw(18) << scenario.input.strategy.substr(0, 17)
               << std::setw(8) << scenario.metrics.tradeType
               << std::setw(14) << formatNumber(scenario.metrics.riskAmount)
               << std::setw(16) << formatNumber(scenario.metrics.positionSize)
@@ -174,7 +290,7 @@ void printFinalTable(const std::vector<ScenarioRecord>& scenarios) {
 
 int main() {
   std::cout << "Calculadora de riesgo para trading en C++\n";
-  std::cout << "Puedes calcular varias operaciones en una sola ejecucion.\n";
+  std::cout << "Puedes calcular varias operaciones y exportarlas a CSV.\n";
 
   std::vector<ScenarioRecord> scenarios;
 
@@ -182,13 +298,17 @@ int main() {
     do {
       std::cout << "\nIntroduce los datos de la operacion.\n\n";
       const TradeInput input = readTradeInput();
-      const TradeMetrics metrics = calculateRisk(input);
+      const ScenarioRecord scenario {currentTimestamp(), input, calculateRisk(input)};
 
-      scenarios.push_back({input, metrics});
-      printScenarioSummary(input, metrics);
-    } while (askToContinue());
+      scenarios.push_back(scenario);
+      printScenarioSummary(scenario);
+    } while (askYesNo("\nQuieres calcular otra operacion? (s/n): "));
 
     printFinalTable(scenarios);
+
+    const std::string filename = "escenarios_cpp.csv";
+    exportScenariosToCsv(scenarios, filename);
+    std::cout << "\nCSV exportado en " << filename << '\n';
   } catch (const std::exception& error) {
     std::cerr << "\nError: " << error.what() << '\n';
     return 1;
