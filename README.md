@@ -4,6 +4,10 @@ HTML, CSS, and JavaScript project focused on practical trading workflows, form h
 
 Current status: `v1.0.0`, finalized as a first stable portfolio release.
 
+Live site:
+
+- `https://leticia-padilla-dev.github.io/calculadora_riesgo_trading/`
+
 Public portfolio positioning:
 - repository description centered on a pre-trade risk workbench
 - website pointing to the GitHub Pages deployment
@@ -133,7 +137,7 @@ The site is ready to be published with GitHub Pages through GitHub Actions.
 
 Expected public URL:
 
-- `https://whiteks1.github.io/calculadora_riesgo_trading/`
+- `https://leticia-padilla-dev.github.io/calculadora_riesgo_trading/`
 
 If this is the first time you enable Pages for the repository, make sure the Pages source is set to `GitHub Actions`.
 
