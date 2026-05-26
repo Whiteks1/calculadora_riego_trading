@@ -1,8 +1,13 @@
 {
-  "name": "calculadora-riego-trading",
+  "name": "calculadora-riesgo-trading",
   "private": true,
   "version": "1.0.0",
   "description": "Pre-trade risk workbench and deterministic trade-plan exports.",
+  "homepage": "https://leticia-padilla-dev.github.io/calculadora_riesgo_trading/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leticia-padilla-dev/calculadora_riesgo_trading.git"
+  },
   "bin": {
     "trade-plan-cli": "./cli/trade-plan.js"
   },

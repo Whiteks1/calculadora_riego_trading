@@ -14,3 +14,5 @@ escenarios_cpp.csv
 node_modules/
 test-results/
 playwright-report/
+.playwright-cli/
+.codex-artifacts/
